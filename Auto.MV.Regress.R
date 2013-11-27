@@ -204,7 +204,7 @@ for (k in 1:ncol(Y)){
   
   Resultscolumns<-rbind(t(Pcor.prob.adjusted),t(Pcor),t(above_threshold_dummy))
   
-  rownames(Resultscolumns)<-c(paste(foldername,"_pvalue","(",p.adjust.methods,")",sep=""),paste(foldername,"(",Sum_above_threshold,">",Corr.thresh,",n=",ncol(Xsamplesincluded),")",sep=""),paste(foldername,"Above_threshold",sep=""))
+  rownames(Resultscolumns)<-c(paste(foldername,"_pvalue_","MultTestCorr_",p.adjust.methods,sep=""),paste(foldername,"_Sum_above_thresh_",Sum_above_threshold,"_nSamples_",ncol(Xsamplesincluded),sep=""),paste(foldername,"_Above_threshold",sep=""))
   
   Biomarker.number<-data.frame(cbind(ncol(Xsamplesincluded),foldername,Sum_above_threshold))
   
