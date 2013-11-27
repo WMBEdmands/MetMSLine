@@ -1,0 +1,625 @@
+Auto.MV.Regress<-function( X="PCA.outliers.removed.csv", Yvar="Y.outliers.removed.csv", box.prop=1/5, wd="D:\\R_data_processing\\STUDY NAME\\", p.adjust.methods="none", heatmap=TRUE, hclust.method="complete", dist.m.method="euclidean", Yunits="Y_units", Corr.thresh=0.3, pvalue=0.01, HMDBtol=0.005, Clust.RT.tol=5, mode="negative", delta=0.005, non.zero=2){
+
+require(gplots)
+require(ggplot2)
+require(pls)
+require(sfsmisc)
+require(RColorBrewer)
+
+wd<-paste(wd,"Auto.PCA.results\\",sep="")
+
+setwd(wd)
+  
+Samples<-read.csv(X,header=TRUE)
+        
+Y<-as.data.frame(read.csv(Yvar,header=T,row.names=1))
+
+Ycolnames<-as.character(colnames(Y))
+
+Yrownames<-as.character(row.names(Y))
+####create Auto.MV.Regress subdirectory to keep everything tidy!####
+
+wd<-paste(substr(wd,1,nchar(wd)-17),"Auto.MV.Regress.results.","\\",sep="")
+
+dir.create(wd)
+
+setwd(wd)
+
+###save all parameters used in a dated .csv file for future reference###
+Parameters<-data.frame(X,Yvar,p.adjust.methods,box.plot.proportions=box.prop,
+                       hclust.method,dist.m.method,Pearson.corr.thresh=Corr.thresh,pvalue.cutoff=pvalue,
+                       Cluster.RT.tol=Clust.RT.tol,Mass.Accuracy.ClusterID=delta,Min.pos.values.Y=round(((nrow(Y)/100)*non.zero),digits=0))
+
+date<-Sys.time()
+date<-gsub("-",".",date)
+write.csv(Parameters,paste("Parameters",substr(date,1,10),".csv",sep=" "),row.names=FALSE)
+
+
+XCMScolumnsIndex<-c(1:which(colnames(Samples)=="RSD_corr_below"))
+  
+XCMScolumns<-Samples[,XCMScolumnsIndex]
+
+Samples<-Samples[,-XCMScolumnsIndex]
+
+#SampleIndex<-colnames(t(Y)) %in% colnames(Samples) 
+
+#Y<-data.frame(Y[SampleIndex,])
+
+Yindices<-as.data.frame(Y>0) # all non zero Y-variables for regression
+
+Yzeroindex<-as.data.frame(Y==0)
+
+Yindices_sum<-as.data.frame(apply(Yindices,2,sum)) # sum of all non-zero Y-variables 
+
+Yabove_10<-which(Yindices_sum>=((nrow(Y)/100)*non.zero)) # index all Y-variables with less than minimum proportion of non-zeros
+
+Yindices<-as.data.frame(Yindices[,Yabove_10]) # remove all Y-variables from Yindices
+
+Y<-as.data.frame(Y[,Yabove_10])
+
+colnames(Y)<-Ycolnames
+
+row.names(Y)<-Yrownames
+
+##########################################################################################
+
+results <- data.frame() # empty data.frame for storage of results above threshold
+above_threshold_df<-data.frame()
+box.plot.scores<-as.numeric()
+Biomarker_numbers.df<-data.frame()
+
+if (ncol(Y)>0){
+for (k in 1:ncol(Y)){
+  
+  foldername<-colnames(Y[k]) # new folder name
+  
+  dirname<-paste(wd,foldername,sep="") #directory name
+  
+  dir.create(dirname) # create new folder for individual Y-variable data processing
+  
+  setwd(dirname) # set working directory to new folder
+  
+  Ydata<-Y[,k] # Y variable
+
+  Yindex<-Yindices[,k] # Non zero index
+
+  
+  Xsamplesincluded<-Samples[,Yindex] # X samples to include in regression
+  
+  
+  Yincluded<-Ydata[Yindex] # Y variables to include in regression  
+  
+  Pcor<-cor(t(Xsamplesincluded),Yincluded,method=c("pearson")) #X-Y correlation
+  
+  if (any(is.na(Pcor)==TRUE)==FALSE){
+  # Pcor probability function f test and t stat
+ 
+  dfr<-ncol(Xsamplesincluded)-2 #degrees of freedom
+  
+  r2<-Pcor^2 #coefficient of determination
+  
+  Fstat<-r2*dfr/(1-r2) # F-stat
+  
+  Pcor_prob<-1-pf(Fstat,1,dfr) #p-value calculation
+  
+  Pcor.prob.adjusted<-p.adjust(Pcor_prob, method=p.adjust.methods, n=length(Pcor_prob)) ##multiple testing correction
+  
+  significant<-ifelse(Pcor.prob.adjusted<pvalue,Pcor,0) ##above significance threshold
+  
+  Pcor_results<-cbind(Pcor,Pcor_prob,Pcor.prob.adjusted,significant,ncol(Xsamplesincluded),foldername) 
+  
+  colnames(Pcor_results)<-c("Pcor","Pvalue",p.adjust.methods,"significant","Nsamples_included","Y_variable")
+  
+  Pcor_results<-cbind(XCMScolumns,Pcor_results)
+  
+  above_threshold<-which(significant>=Corr.thresh)
+  
+  above_threshold_dummy<-(significant>=Corr.thresh)*1
+  
+  Sum_above_threshold<-sum(significant>=Corr.thresh)
+  
+  Above_threshold_results<-Pcor_results[above_threshold,]
+  
+  Above_threshold_plots<-Xsamplesincluded[above_threshold,] ######subset for plotting linear regressions
+    
+  #########################################################################################################################################################
+  ###subset the upper and lower classes of samples for box and whisker plot creation####
+  high<-as.data.frame(Y[order(Y[,k],decreasing=TRUE)[1:round((nrow(Y)*(box.prop)),digits=0)],k])
+  row.names(high)<-Yrownames[order(Y[,k],decreasing=TRUE)[1:round((nrow(Y)*(box.prop)),digits=0)]]
+  colnames(high)<-"Box"
+  low<-as.data.frame(Y[order(Y[,k],decreasing=FALSE)[1:round((nrow(Y)*(box.prop)),digits=0)],k])
+  row.names(low)<-Yrownames[order(Y[,k],decreasing=FALSE)[1:round((nrow(Y)*(box.prop)),digits=0)]]
+  colnames(low)<-"Box"
+  high[,1]<-TRUE
+  low[,1]<-FALSE
+  
+  YBox<-rbind(high,low)
+  YBox.row.names<-row.names(YBox)
+  YBox<-YBox[order(YBox.row.names),]
+  
+  YBox<-ifelse(YBox==FALSE,"Y.low.zero","Y.high") ###change logical to category names
+  
+  #########################################################################################################################################################
+    
+  Above_threshold_Box_plots<-Samples[above_threshold,]
+  
+  #Quint.df<-t(Samples[,colnames(Samples) %in% food.table$X_DM])
+  Above_threshold_Box_plots<-as.data.frame(Above_threshold_Box_plots[,colnames(Above_threshold_Box_plots) %in% YBox.row.names])
+  
+  Above_threshold_Box_plots<-Above_threshold_Box_plots[,order(colnames(Above_threshold_Box_plots))]
+    
+  Plot_names<-as.character(Above_threshold_results[,2])
+
+  #######Plotting above threshold correlation scatterplots#######
+    
+  if( Sum_above_threshold > 0) {
+    
+    for (i in 1:nrow(Above_threshold_plots)){ 
+     
+      Titlename<-Plot_names[i]
+      
+     png(paste(Titlename,".",foldername,".png",sep=""),width=1200,height=1200,res=275)
+            
+     plot(log10(Yincluded),as.numeric(Above_threshold_plots[i,]), main=paste(foldername,Titlename),sub="(Log)",xlab=paste(foldername,Yunits), ylab="XObs_gLog_QC.LSC",xaxt="n",pch=19,cex=0.6)
+         
+      
+     axis.labels<-round(lseq(min(Yincluded),max(Yincluded),10),digits=0)
+     Log10Y<-log10(Yincluded)
+     axis.points<-seq(min(Log10Y),max(Log10Y),length.out=10)
+     axis(1, at=axis.points, labels = axis.labels)
+      
+      graphics.off()
+      
+      ####create box plots####
+      boxplot.df<-data.frame(Box=YBox,XObs_gLog_QC.LSC=as.numeric(Above_threshold_Box_plots[i,]))
+      
+      ####T TEST HERE#####
+      zero.boxplot<-boxplot.df[boxplot.df$Box=="Y.low.zero",2]
+      nonzero.boxplot<-boxplot.df[boxplot.df$Box!="Y.low.zero",2]
+      b1<-boxplot.stats(zero.boxplot)
+      b2<-boxplot.stats(nonzero.boxplot)
+      Above.zero.samples<-paste(round(sum.nonzero.above.zero<-sum(nonzero.boxplot>=b1$stats[[5]]),digits=0)," ","(",round(100*(sum.nonzero.above.zero/length(nonzero.boxplot)),digits=0),"%",")"," ",">1.5*IQR",sep="")
+      Zero.outliers<-paste(zero.out<-length(which(zero.boxplot>b1$stats[[5]]))," ","(",round(100*(zero.out/length(zero.boxplot)),digits=0),"%",")"," ",">1.5*IQR",sep="") ###number of zero samples above 1.5*IQR threshold
+      
+      ###Box plot score calculation = percentage of non zero samples above zero group penalised by the proportion of samples above zero group whisker in zero group####
+      box.plot.score<-((sum.nonzero.above.zero/length(nonzero.boxplot))-((zero.out/length(zero.boxplot))))
+      box.plot.scores<-c(box.plot.scores,box.plot.score)
+       
+      g<-ggplot(boxplot.df,aes(x=Box,y=XObs_gLog_QC.LSC))+
+        geom_boxplot(outlier.colour="red",outlier.size=0)+
+        stat_summary(fun.y=mean, geom="point",shape=18, size=12,col="red",fill="red")+
+        geom_jitter(position=position_jitter(w=0.15,h=0.15))+
+        geom_hline(yintercept=b1$stats[[5]],colour="red",size=1)+
+        annotate("text",label=Above.zero.samples,y=max(nonzero.boxplot)*1.1,x=1,size=3.5)+
+        annotate("text",label=Zero.outliers,y=max(nonzero.boxplot)*1.1,x=2,size=3.5)+
+        labs(title=Titlename)+
+        theme_bw(12)
+      
+      ggsave(g,filename=paste(Titlename,".",foldername,"_BOXPLOT",".png",sep=""))
+    }
+   }  
+  
+  ###Features above threshold aggregation#####
+  
+  
+  Resultscolumns<-rbind(t(Pcor.prob.adjusted),t(Pcor),t(above_threshold_dummy))
+  
+  rownames(Resultscolumns)<-c(paste(foldername,"_pvalue","(",p.adjust.methods,")",sep=""),paste(foldername,"(",Sum_above_threshold,">",Corr.thresh,",n=",ncol(Xsamplesincluded),")",sep=""),paste(foldername,"Above_threshold",sep=""))
+  
+  Biomarker.number<-data.frame(cbind(ncol(Xsamplesincluded),foldername,Sum_above_threshold))
+  
+  Biomarker_numbers.df<-rbind(Biomarker_numbers.df,Biomarker.number)
+
+  above_threshold_df<-rbind(above_threshold_df, t(above_threshold_dummy))
+  
+  results<-rbind(results,Resultscolumns)
+  } 
+}
+
+results<-as.data.frame(t(results))
+above_threshold_df<-as.data.frame(t(above_threshold_df))
+
+
+Results_rowsums<-apply(above_threshold_df,1,sum) 
+
+
+DummyMsignif<-as.data.frame(above_threshold_df[Results_rowsums>0,])
+
+boxplot.score.df<-as.data.frame(matrix(0,ncol=ncol(above_threshold_df),nrow=nrow(DummyMsignif)))
+
+boxplot.score.index<-DummyMsignif==1
+
+###replace dummy matrix with box plot scores for each significant feature###
+
+boxplot.score.df[boxplot.score.index]<-box.plot.scores
+
+colnames(boxplot.score.df)<-paste(Biomarker_numbers.df[,2],rep(".boxplot.score",length.out=nrow(Biomarker_numbers.df)),sep="")
+
+colnames(DummyMsignif)<-as.character(1:ncol(DummyMsignif))
+
+significantmarker_data<-XCMScolumns[Results_rowsums>0,] #subset feature details above threshold
+
+ #####Significant Feature HMDB weblink######
+
+if(nrow(significantmarker_data)>2){
+  significantmarker_mzMED<-significantmarker_data[,"mzmed"]
+  HMDB.url<-data.frame()
+  for (j in 1:length(significantmarker_mzMED)) {
+    
+    
+    HMDB.url.link<-as.data.frame(paste("http://www.hmdb.ca/spectra/ms/search?utf8=%E2%9C%93&query_masses=",significantmarker_mzMED[j],"&tolerance=",HMDBtol,"&mode=",mode,"&commit=Search",sep=""))
+    
+    HMDB.url<-rbind(HMDB.url,HMDB.url.link)
+    
+  } 
+  colnames(HMDB.url)<-"HMDB.url"
+  significantmarker_data<-cbind(significantmarker_data,HMDB.url)  
+}
+colnames(significantmarker_data)[1]<-"XCMS_EIC"
+
+correlation.results<-results[Results_rowsums>0,]##sample data minus outliers for column binding following hmdb link generation
+
+Ycorrelated.heatmap<-as.data.frame(correlation.results[,(as.logical(rep(c(0,1,0),length(Y))))])
+
+sample.data<-Samples[Results_rowsums>0,]
+##########################################################################################
+##########################################################################################
+
+significantmarker_data<-cbind(significantmarker_data,correlation.results,boxplot.score.df,sample.data)
+
+setwd(wd)
+
+####Heatmap######
+
+if (heatmap==TRUE) {
+  RowLabels<-as.character(significantmarker_data[,"name"])
+ 
+  hmcols2<-rev(colorRampPalette(brewer.pal(10,"RdBu"))(256)) ##heatmap colour palette
+  
+  ####Create X-Y correlation heatmap#####
+  if(ncol(Ycorrelated.heatmap)>1){
+  pdf(paste("HM.Y_X",".pdf"))
+  
+  heatY<-heatmap.2(t(Ycorrelated.heatmap), dend="column",Colv=TRUE,Rowv=FALSE, symm=FALSE,scale="none",labRow=c(colnames(Ycorrelated.heatmap)),labCol=RowLabels,margins=c(7,7),col=hmcols2,trace="none",key=TRUE,keysize=1.5,cexCol=0.25,cexRow=0.4,hclustfun=function(x) hclust(x,method=hclust.method), distfun=function(x) dist(x, method = dist.m.method))
+   
+  dev.off()
+  
+}
+  
+  ###create X-X correlation matrix#####
+  
+  SignCor<-cor(t(sample.data),method=c("pearson"))
+    
+  pdf(paste("HM.X_X",".pdf"))
+ 
+  ###create X-X correlation matrix#####
+  
+  heat<-heatmap.2(as.matrix(SignCor), dend="both",Colv=TRUE, symm=TRUE,scale="none",labRow=c(RowLabels),labCol=c(RowLabels),margins=c(2,2),col=hmcols2,trace="none",key=TRUE,cexCol=0.25,cexRow=0.25,hclustfun=function(x) hclust(x,method=hclust.method), distfun=function(x) dist(x, method = dist.m.method))
+  
+  dev.off()
+  
+  
+  ###Hierarchical clustering order####
+  ReorderHierCl<-cbind(as.matrix(seq(1,ncol(SignCor),1)),as.matrix(heat$rowInd))
+  ReorderHierCl<-ReorderHierCl[order(ReorderHierCl[,2]),]
+  significantmarker_data<-cbind(ReorderHierCl,significantmarker_data)
+  colnames(significantmarker_data)[1]<-"Hierclust.order"
+  significantmarker_data<-significantmarker_data[order(significantmarker_data[,"Hierclust.order"]),]
+  
+  #####identify retention time clusters#####
+  rtmed.cluster<-significantmarker_data[,"rtmed"]
+  rtmed.cluster.shift<-c(rtmed.cluster[2],rtmed.cluster[-(length(rtmed.cluster))])
+  rtmed.difference<-rtmed.cluster-rtmed.cluster.shift
+  rtmed.cluster.mat<-data.frame(cbind(rtmed.cluster,rtmed.cluster.shift,rtmed.difference))
+  
+  ####match clusters based on similarity in retention time#########
+  rtmed.cluster.mat$cluster.seq<-ifelse(x<-rtmed.cluster.mat$rtmed.difference<Clust.RT.tol & rtmed.cluster.mat$rtmed.difference>-Clust.RT.tol, cumsum(c(head(x, 1), tail(x, -1) - head(x, -1) == 1)), 0)
+  rtmed.cluster.mat$cluster.seq<-c(ifelse((head(rtmed.cluster.mat$cluster.seq, -1) + tail(rtmed.cluster.mat$cluster.seq, -1) == tail(rtmed.cluster.mat$cluster.seq, -1)),tail(rtmed.cluster.mat$cluster.seq,-1),head(rtmed.cluster.mat$cluster,-1)),(tail(rtmed.cluster.mat$cluster.seq, 1)))
+  significantmarker_data<-data.frame(cbind(rtmed.cluster.mat$cluster.seq,significantmarker_data))
+  colnames(significantmarker_data)[1]<-"mz_clusters"
+  
+  ###order by mz then cluster####
+  significantmarker_data<-significantmarker_data[order(-significantmarker_data[,"mz_clusters"],significantmarker_data[,"mzmed"]),]
+ 
+  ###identify mass difference ####   
+  significantmarker_mass.diff<-data.frame(c(0,tail(significantmarker_data$mzmed, -1) - head(significantmarker_data$mzmed, -1)))
+  significantmarker_mass.diff[significantmarker_data[,"mz_clusters"]==0,]<-0 ###if no cluster replace with zero
+  significantmarker_data<-cbind((seq(1,nrow(significantmarker_data),1)),significantmarker_data)
+  colnames(significantmarker_data)[1]<-"cluster_ion_calc.order"
+  
+  ####identify isotopes from mass differences######
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff,2,function(x){ifelse(x<(0.984015583+0.003) & x>(0.984015583-0.003),1,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(0.99703+0.003) & x>(0.99703-0.003),2,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(1.00336+0.003) & x>(1.00336-0.003),3,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(1.007825032+0.003) & x>(1.007825032-0.003),4,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(1.979264556+0.003) & x>(1.979264556-0.003),5,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(1.9958+0.003) & x>(1.9958-0.003),6,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(2.00425+0.003) & x>(2.00425-0.003),7,x)}))
+  
+
+  ###remove isotopes before recalculation#####
+  
+  Isotope_mass.diff.index<-significantmarker_mass.diff.name %in% c(1,2,3,4,5,6,7)
+  Isotopes<-significantmarker_data[Isotope_mass.diff.index==TRUE,]
+  Isotope_mass.diff.name<-data.frame(significantmarker_mass.diff[Isotope_mass.diff.index==TRUE,])
+  Isotope_name<-data.frame(significantmarker_mass.diff.name[Isotope_mass.diff.index==TRUE,]) 
+  significantmarker_data<-significantmarker_data[Isotope_mass.diff.index==FALSE,]
+  significantmarker_mass.diff<-data.frame(c(0,tail(significantmarker_data$mzmed, -1) - head(significantmarker_data$mzmed, -1)))
+  
+  ####replace hierarchical clusters with no retention time connection with a zero####
+  significantmarker_mass.diff[significantmarker_data[,"mz_clusters"]==0,]<-0 ###if no cluster replace with zero
+  
+  ######recalculate potential isotopes#####
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff,2,function(x){ifelse(x<(0.984015583+0.003) & x>(0.984015583-0.003),1,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(0.99703+0.003) & x>(0.99703-0.003),2,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(1.00336+0.003) & x>(1.00336-0.003),3,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(1.007825032+0.003) & x>(1.007825032-0.003),4,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(1.979264556+0.003) & x>(1.979264556-0.003),5,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(1.9958+0.003) & x>(1.9958-0.003),6,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(2.00425+0.003) & x>(2.00425-0.003),7,x)}))
+  
+  ###remove isotopes again before recalculation of mass differences#####
+  
+  Isotope_mass.diff.index<-significantmarker_mass.diff.name %in% c(1,2,3,4,5,6,7)
+  Isotopes<-rbind(Isotopes,significantmarker_data[Isotope_mass.diff.index==TRUE,])
+  Isotope_mass.diff.name<-rbind(Isotope_mass.diff.name,data.frame(significantmarker_mass.diff[Isotope_mass.diff.index==TRUE,]))
+  Isotope_name<-rbind(Isotope_name,data.frame(significantmarker_mass.diff.name[Isotope_mass.diff.index==TRUE,]))
+  significantmarker_data<-significantmarker_data[Isotope_mass.diff.index==FALSE,]
+  significantmarker_mass.diff<-data.frame(c(0,tail(significantmarker_data$mzmed, -1) - head(significantmarker_data$mzmed, -1)))
+  
+  
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff,2,function(x){ifelse(x<(2.015650064+delta) & x>(2.015650064-delta),8,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(2.999665647+delta) & x>(2.999665647-delta),9,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(4.031300128+delta) & x>(4.031300128-delta),10,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(12.0363855+delta) & x>(12.0363855-delta),11,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(13.97926456+delta) & x>(13.97926456-delta),12,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(14.01565006+delta) & x>(14.01565006-delta),13,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(15.0234751+delta) & x>(15.0234751-delta),14,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(15.01089904+delta) & x>(15.01089904-delta),15,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(15.99491462+delta) & x>(15.99491462-delta),16,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(17.0265491+delta) & x>(17.0265491-delta),17,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(18.01056468+delta) & x>(18.01056468-delta),18,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(21.981945+delta) & x>(21.981945-delta),19,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(27.994915+delta) & x>(27.994915-delta),20,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(28.006148+delta) & x>(28.006148-delta),21,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(28.0313001+delta) & x>(28.0313001-delta),22,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(28.9901636+delta) & x>(28.9901636-delta),23,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(29.0027397+delta) & x>(29.0027397-delta),24,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(29.0391252+delta) & x>(29.0391252-delta),25,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(29.97417918+delta) & x>(29.97417918-delta),26,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(30.01056468+delta) & x>(30.01056468-delta),27,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(31.018498+delta) & x>(31.018498-delta),28,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(31.98982924+delta) & x>(31.98982924-delta),29,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(32.02621475+delta) & x>(32.02621475-delta),30,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(34.0054793+delta) & x>(34.0054793-delta),31,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(34.0530982+delta) & x>(34.0530982-delta),32,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(37.955882+delta) & x>(37.955882-delta),33,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(41.02669+delta) & x>(41.02669-delta),34,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(42.010565+delta) & x>(42.010565-delta),35,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(43.0058137+delta) & x>(43.0058137-delta),36,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(43.0183897+delta) & x>(43.0183897-delta),37,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(43.0547752+delta) & x>(43.0547752-delta),38,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(43.9898292+delta) & x>(43.9898292-delta),39,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(44.9977+delta) & x>(44.9977-delta),40,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(46.0419+delta) & x>(46.0419-delta),41,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(47.98474386+delta) & x>(47.98474386-delta),42,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(56.0626003+delta) & x>(56.0626003-delta),43,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(57.02146372+delta) & x>(57.02146372-delta),44,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(57.0704253+delta) & x>(57.0704253-delta),45,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(58.0530982+delta) & x>(58.0530982-delta),46,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(59.0133043+delta) & x>(59.0133043-delta),47,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(59.0371138+delta) & x>(59.0371138-delta),48,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(60.0211294+delta) & x>(60.0211294-delta),49,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(63.961904+delta) & x>(63.961904-delta),50,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(75.032029+delta) & x>(75.032029-delta),51,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(78.95850549+delta) & x>(78.95850549-delta),52,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(79.956819+delta) & x>(79.956819-delta),53,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(82.0530982+delta) & x>(82.0530982-delta),54,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(86.000395+delta) & x>(86.000395-delta),55,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(89.047679+delta) & x>(89.047679-delta),56,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(97.96737954+delta) & x>(97.96737954-delta),57,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(103.0091848+delta) & x>(103.0091848-delta),58,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(107.0040994+delta) & x>(107.0040994-delta),59,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(119.0041+delta) & x>(119.0041-delta),60,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(121.019753+delta) & x>(121.019753-delta),61,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(129.042594+delta) & x>(129.042594-delta),62,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(146.036779+delta) & x>(146.036779-delta),63,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(146.069142+delta) & x>(146.069142-delta),64,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(152.010959+delta) & x>(152.010959-delta),65,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(161.014668+delta) & x>(161.014668-delta),66,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(162.052825+delta) & x>(162.052825-delta),67,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(163.030318+delta) & x>(163.030318-delta),68,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(176.032088+delta) & x>(176.032088-delta),69,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(176.047344+delta) & x>(176.047344-delta),70,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(178.041213+delta) & x>(178.041213-delta),71,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(180.06339+delta) & x>(180.06339-delta),72,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(192.027+delta) & x>(192.027-delta),73,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(194.042655+delta) & x>(194.042655-delta),74,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(198.014035+delta) & x>(198.014035-delta),75,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(203.079373+delta) & x>(203.079373-delta),76,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(215.994605+delta) & x>(215.994605-delta),77,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(221.089937+delta) & x>(221.089937-delta),78,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(239.993994+delta) & x>(239.993994-delta),79,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(255.988909+delta) & x>(255.988909-delta),80,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(258.004564+delta) & x>(258.004564-delta),81,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(273.096087+delta) & x>(273.096087-delta),82,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(273.999479+delta) & x>(273.999479-delta),83,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(275.111737+delta) & x>(275.111737-delta),84,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(305.068161+delta) & x>(305.068161-delta),85,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(307.083811+delta) & x>(307.083811-delta),86,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(352.06418+delta) & x>(352.06418-delta),87,x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x<(388.08531+delta) & x>(388.08531-delta),88,x)}))
+    
+  #####identify unlabelled cluster differences######
+  mass.diff.seq<-seq(1,88,1)
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x %in% mass.diff.seq,x,NA)}))
+  
+  ####Name Isotopes######
+  
+  Isotope_name<-(apply(Isotope_name,2,function(x){ifelse(x==1,"[+O-NH3]",x)}))
+  Isotope_name<-(apply(Isotope_name,2,function(x){ifelse(x==2,"[N15 isotope]",x)}))
+  Isotope_name<-(apply(Isotope_name,2,function(x){ifelse(x==3,"[C13 isotope]",x)}))
+  Isotope_name<-(apply(Isotope_name,2,function(x){ifelse(x==4,"[+H]",x)}))
+  Isotope_name<-(apply(Isotope_name,2,function(x){ifelse(x==5,"[+O -CH2]",x)}))
+  Isotope_name<-(apply(Isotope_name,2,function(x){ifelse(x==6,"[S34 isotope]",x)}))
+  Isotope_name<-(apply(Isotope_name,2,function(x){ifelse(x==7,"[O18 isotope]",x)}))
+  
+  ###Name fragments##### 
+  
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==8,"[+H2]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==9,"[+OH-N]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==10,"[+H4]/[-H4]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==11,"[+O-C2H4]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==12,"[+O -H2]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==13,"[+CH2]/[-CH2]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==14,"[-CH3]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==15,"[+O2 -NH3]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==16,"[Hydroxylation/+O]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==17,"[M+NH4]/[-NH3]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==18,"[+H2O]/[-H2O]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==19,"[M+Na]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==20,"[-CO]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==21,"[-N2]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==22,"[-C2H4] ",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==23,"[+H-NO] ",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==24,"[-CHO]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==25,"[-C2H5] ",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==26,"[+O2-H2]/[+H2-O2]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==27,"[+OCH2]/[-CH2O] ",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==28,"[M+Methanol CH4O]/[-OCH3]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==29,"[2 x Hydroxylation]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==30,"[M+MeOH+H]/-[MeOH]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==31,"[+2 OH]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==32,"[M+NH3.NH4]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==33,"[M+K]/-[K]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==34,"[M+MeCN+H]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==35,"[Acetylation shift]/-[AcKetene]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==36,"[-HCNO]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==37,"[-CH3CO]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==38,"[-C3H7]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==39,"[-CO2]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==40,"[M+HCOOH]/[-HCOOH/+H-NO2]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==41,"[-EtOH]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==42,"[+O3]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==43,"[-C4H8]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==44,"[Glycyl conjugation shift]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==45,"[-C4H9]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==46,"[M+MeCN+NH4]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==47,"[-acetate]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==48,"[-Acetamide]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==49,"[-CH3COOH]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==50,"[-SO2]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==51,"[-Gly]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==52,"[phosphate - PO3 conjugation]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==53,"[SO3 conjugation shift]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==54,"[M+2ACN+H]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==55,"[-Malonyl]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==56,"[-Cys conj-ala]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==57,"[H2SO4- Sulfate conjugation/phosphate conjugation]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==58,"[Cysteinyl conjugation]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==59,"[Taurine conjugation]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==60,"[S-Cysteine conjugation shift]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==61,"[-Cys]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==62,"[-GSH AnhydroGlu]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==63,"[-Coumaroyl loss]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==64,"[-Ala-Gly/ GSH Glu loss]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==65,"[-Galloyl loss]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==66,"[N-AcetylCysteine conjugation shift]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==67,"[Glucose shift]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==68,"[-N-AcCys]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==69,"[AnhydroGlucuronide conjugation shift]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==70,"[-Feruloyl loss]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==71,"[-Cys-Gly loss]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==72,"[-Gluc loss]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==73,"[-Hydroxylation+Gluc]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==74,"[-Gluc]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==75,"[-AnhydroGluc + Na]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==76,"[-AnhydroGlucNAc]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==77,"[-Gluc + Na]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==78,"[-GlcNAc loss]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==79,"[-AnhydroGluc + SO2]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==80,"[-AnhydroGluc + SO3]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==81,"[-Gluc + SO2]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==82,"[-GSH GluAlaGly-2H]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==83,"[-Gluc + SO3]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==84,"[-GSH-GluAlaGly]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==85,"[S-Glutathione conjugation shift]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==86,"[-GSH]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==87,"[-DiAnhydroGlu]",x)}))
+  significantmarker_mass.diff.name<-(apply(significantmarker_mass.diff.name,2,function(x){ifelse(x==88,"[-DiGlu]",x)}))
+  
+  ###rebind isotopes with potential in-source fragments#####
+  significantmarker_data<-data.frame(cbind((seq(1,nrow(significantmarker_data),1)),significantmarker_mass.diff.name,significantmarker_mass.diff,significantmarker_data))
+  Isotopes<-data.frame(cbind((rep(NA,nrow(Isotopes))),Isotope_name,Isotope_mass.diff.name,Isotopes))
+  colnames(Isotopes)<-colnames(significantmarker_data)
+  significantmarker_data<-as.data.frame(rbind(significantmarker_data,Isotopes))
+  
+  colnames(significantmarker_data)[1]<-"Isotope_rem.cluster_calc.order"
+  colnames(significantmarker_data)[2]<-"Potential_cluster_ions"
+  colnames(significantmarker_data)[3]<-"cluster_ions_mz.diff"
+  
+}
+significantmarker_data<-significantmarker_data[order(significantmarker_data[,"XCMS_EIC"]),]
+
+Ycor<-Y
+
+####split significant features into their respective subfolders and save also add column of scatterplot locations#####
+
+for (k in 1:ncol(Ycor)){
+  
+  foldername<-colnames(Ycor[k]) # new folder name
+ 
+  dirname<-paste(wd,foldername,sep="") #directory name
+  
+  setwd(dirname) # set working directory to new folder
+  
+  Yresultsindex<-as.logical(significantmarker_data[,paste(foldername,"Above_threshold",sep="")])
+  
+  Yresults.signif<-significantmarker_data[Yresultsindex,]
+  
+  Above_thresh_csvlabel<-paste(foldername,"_results_above_threshold",".csv",sep="")
+  
+  if( nrow(Yresults.signif)>1) {
+    
+    Plot.url.names<-as.character(Yresults.signif[,"name"])
+    
+    Scatter.url<-data.frame()
+    
+    for (k in 1:nrow(Yresults.signif)){ 
+      
+      Plot.url.Feat.name<-Plot.url.names[k]
+      
+      Scatter.plot.url<-as.data.frame(paste(wd,foldername,"\\",Plot.url.Feat.name,foldername,".png",sep=""))
+      
+      Scatter.url<-rbind(Scatter.url,Scatter.plot.url)
+    }
+    
+    colnames(Scatter.url)<-"Scatter.plot.file.location"
+    Yresults.signif<-cbind(Yresults.signif,Scatter.url)
+    
+    write.csv(Yresults.signif,Above_thresh_csvlabel,row.names=FALSE)
+  } else if (nrow(Yresults.signif)<=1){
+    
+    Ynocor<-Ycor[,foldername]
+  
+  setwd(wd) 
+######save new Y matrix as .csv if Y variables have been removed#####
+    
+  if (length(ncol(Ynocor)!=ncol(Ycor))!=0) {
+    write.csv(Ynocor,"Y_uncorrelated_removed.csv")
+  }  
+}
+}
+
+setwd(wd)
+
+write.csv(significantmarker_data,"Features_Above_threshold.csv",row.names=FALSE)
+dev.off()
+
+} else if (ncol(Y)==0) { 
+  print("Error: insufficient Y variable values supplied, decrease non-zero parameter or try others")
+  
+}
+}
+
+###END###
