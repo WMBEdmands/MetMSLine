@@ -1,4 +1,4 @@
-PreProc.QC.RLSC<-function(X="XCMS_output.tsv",CCQC=10,SGroups=3,QCInt=10,MFC.norm=TRUE,f=1/5,RSD=30,a=1,scatter.plots=TRUE,wd="D:\\R_data_processing\\STUDY NAME\\",XCMS_dir="D:\\R_data_processing\\STUDY NAME\\XCMS\\") {
+PreProc.QC.RLSC<-function(X="XCMS_output.tsv",CCQC=10,SGroups=3,QCInt=5,MFC.norm=TRUE,f=1/5,RSD=30,a=1,scatter.plots=TRUE,wd="D:\\R_data_processing\\STUDY NAME\\",XCMS_dir="D:\\R_data_processing\\STUDY NAME\\XCMS\\") {
 # Performs QC based LOWESS curve signal correction. X-XCMS diffreport, CCQC - number of column conditioning QCs, 
 # QCInt - QC injection interval (ie. every 4th sample), f = the smoother span (proportion of points in the plot which influence the smooth at each value), larger values = more smoothness.
 # a<-1 alpha generalized log transform
@@ -12,11 +12,9 @@ PreProc.QC.RLSC<-function(X="XCMS_output.tsv",CCQC=10,SGroups=3,QCInt=10,MFC.nor
   ##automatically identify file extension##
   if(substr(X,nchar(X)-2,nchar(X))=="tsv"){
   X<-read.table(X,sep="\t",header=T)
-  }
-  if(substr(X,nchar(X)-2,nchar(X))=="txt"){
+  } else if (substr(X,nchar(X)-2,nchar(X))=="txt"){
     X<-read.table(X,sep="\t",header=T)
-  }
-  if(substr(X,nchar(X)-2,nchar(X))=="csv"){
+  } else if (substr(X,nchar(X)-2,nchar(X))=="csv"){
     X<-read.csv(X,header=T)
   }
   
