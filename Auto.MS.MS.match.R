@@ -1,4 +1,4 @@
-Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",mode="negative",wd="D:\\R_data_processing\\STUDY NAME\\",  mzXML.dir="D:\\R_data_processing\\STUDY NAME\\MS_MS_mzXML\\",TICfilter=5000,minIntensity=500,delta=0.005,ret=5,Parent.tol=0.1,Fragment.tol=0.5){                                                
+Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",mode="negative",wd="D:\\R_data_processing\\STUDY NAME\\",  mzXML.dir="D:\\R_data_processing\\STUDY NAME\\MS_MS_mzXML\\",TICfilter=5000,Precursor.ppm=10,Frag.ppm=20,ret=5,Parent.tol=0.1,Fragment.tol=0.5){                                                
   ###minIntensity = minimum MS MS fragment intensities
   ##HMDB MS MS parent search tolerance. Set a broad tolerance here.
   ##mode for HMDB MS MS search                           
@@ -88,8 +88,8 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",mode="negat
     Match.results <- data.frame() #empty dataframe for DB search results
     
     for(i in 1:length(Med.mz)){
-      max = Med.mz[i]+delta
-      min = Med.mz[i]-delta
+      max = Med.mz[i]+Precursor.ppm
+      min = Med.mz[i]-Precursor.ppm
       for (k in 1:length(PrecursorMz)) {
         index <- which (PrecursorMz[k]<max & PrecursorMz[k]>min)
         
@@ -133,7 +133,7 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",mode="negat
           maxintensity <- max(Matched.Auto.MS.MS[[i]][[1]]$intensity)
           Intensity.results <-rbind(Intensity.results,maxintensity)#empty dataframe for intensity results
         }
-        Intensity.fragments.index<-which(Intensity.results>=minIntensity)
+        Intensity.fragments.index<-which(Intensity.results>=50)
         
         if (length(Intensity.fragments.index)!=0 & length(Intensity.fragments.index)>1){
           Intensity.results<-Intensity.results[Intensity.fragments.index,]
@@ -235,72 +235,72 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",mode="negat
             
             #######################FRAGMENT IDENTIFICATION############################################
             
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.diff,2,function(x){ifelse(x<(0.984015583+delta) & x>(0.984015583-delta),1,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(2.015650064+0.005) & x>(2.015650064-0.005),2,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(4.031300128+0.005) & x>(4.031300128-0.005),3,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(12.036385508+0.005) & x>(12.036385508-0.005),4,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(13.979264556+0.005) & x>(13.979264556-0.005),5,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(14.015650064+0.005) & x>(14.015650064-0.005),6,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(15.023475096+0.005) & x>(15.023475096-0.005),7,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(15.99491462+0.005) & x>(15.99491462-0.005),8,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(17.026549+0.005) & x>(17.026549-0.005),9,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(18.010565+0.005) & x>(18.010565-0.005),10,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(21.981945+0.005) & x>(21.981945-0.005),11,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(27.994915+0.005) & x>(27.994915-0.005),12,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(28.00614801+0.005) & x>(28.00614801-0.005),13,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(28.031300128+0.005) & x>(28.031300128-0.005),14,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(28.990163592+0.005) & x>(28.990163592-0.005),15,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(29.002739652+0.005) & x>(29.002739652-0.005),16,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(29.03912516+0.005) & x>(29.03912516-0.005),17,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(29.974179175+0.005) & x>(29.974179175-0.005),18,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(30.010564684+0.005) & x>(30.010564684-0.005),19,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(31.018498+0.005) & x>(31.018498-0.005),20,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(32.026214748+0.005) & x>(32.026214748-0.005),21,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(37.955882+0.005) & x>(37.955882-0.005),22,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(42.010565+0.005) & x>(42.010565-0.005),23,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(43.005813656+0.005) & x>(43.005813656-0.005),24,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(43.018389716+0.005) & x>(43.018389716-0.005),25,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(43.0547752+0.005) & x>(43.0547752-0.005),26,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(43.989829239+0.005) & x>(43.989829239-0.005),27,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(44.997654271+0.005) & x>(44.997654271-0.005),28,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(46.00548+0.005) & x>(46.00548-0.005),29,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(46.0419+0.005) & x>(46.0419-0.005),30,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(56.062600257+0.005) & x>(56.062600257-0.005),31,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(57.070425289+0.005) & x>(57.070425289-0.005),32,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(59.013304335+0.005) & x>(59.013304335-0.005),33,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(59.037113785+0.005) & x>(59.037113785-0.005),34,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(60.021129367+0.005) & x>(60.021129367-0.005),35,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(63.961904+0.005) & x>(63.961904-0.005),36,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(75.032029+0.005) & x>(75.032029-0.005),37,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(79.956814859+0.005) & x>(79.956814859-0.005),38,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(86.000395+0.005) & x>(86.000395-0.005),39,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(89.047679+0.005) & x>(89.047679-0.005),40,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(121.019753+0.005) & x>(121.019753-0.005),41,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(129.042594+0.005) & x>(129.042594-0.005),42,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(146.036779432+0.005) & x>(146.036779432-0.005),43,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(146.069142189+0.005) & x>(146.069142189-0.005),44,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(152.010958607+0.005) & x>(152.010958607-0.005),45,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(162.052825+0.005) & x>(162.052825-0.005),46,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(163.030318+0.005) & x>(163.030318-0.005),47,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(176.032087974+0.005) & x>(176.032087974-0.005),48,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(176.047344115+0.005) & x>(176.047344115-0.005),49,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(178.041213189+0.005) & x>(178.041213189-0.005),50,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(180.06339+0.005) & x>(180.06339-0.005),51,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(192.027+0.005) & x>(192.027-0.005),52,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(194.042655+0.005) & x>(194.042655-0.005),53,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(198.014035+0.005) & x>(198.014035-0.005),54,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(203.07937252+0.005) & x>(203.07937252-0.005),55,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(215.994605+0.005) & x>(215.994605-0.005),56,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(221.089937203+0.005) & x>(221.089937203-0.005),57,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(239.993994+0.005) & x>(239.993994-0.005),58,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(255.988909+0.005) & x>(255.988909-0.005),59,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(258.004564+0.005) & x>(258.004564-0.005),60,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(273.096087+0.005) & x>(273.096087-0.005),61,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(273.999479+0.005) & x>(273.999479-0.005),62,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(275.111737+0.005) & x>(275.111737-0.005),63,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(307.083811+0.005) & x>(307.083811-0.005),64,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(352.06418+0.005) & x>(352.06418-0.005),65,x)}))
-            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(388.08531+0.005) & x>(388.08531-0.005),66,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.diff,2,function(x){ifelse(x<(a<-0.984015583)+((Clust.ppm/1000000)*a) & x>(b<-0.984015583)-((Clust.ppm/1000000)*b),1,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-2.015650064)+((Clust.ppm/1000000)*a) & x>(b<-2.015650064)-((Clust.ppm/1000000)*b),2,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-4.031300128)+((Clust.ppm/1000000)*a) & x>(b<-4.031300128)-((Clust.ppm/1000000)*b),3,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-12.036385508)+((Clust.ppm/1000000)*a) & x>(b<-12.036385508)-((Clust.ppm/1000000)*b),4,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-13.979264556)+((Clust.ppm/1000000)*a) & x>(b<-13.979264556)-((Clust.ppm/1000000)*b),5,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-14.015650064)+((Clust.ppm/1000000)*a) & x>(b<-14.015650064)-((Clust.ppm/1000000)*b),6,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-15.023475096)+((Clust.ppm/1000000)*a) & x>(b<-15.023475096)-((Clust.ppm/1000000)*b),7,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-15.99491462)+((Clust.ppm/1000000)*a) & x>(b<-15.99491462)-((Clust.ppm/1000000)*b),8,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-17.026549)+((Clust.ppm/1000000)*a) & x>(b<-17.026549)-((Clust.ppm/1000000)*b),9,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-18.010565)+((Clust.ppm/1000000)*a) & x>(b<-18.010565)-((Clust.ppm/1000000)*b),10,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-21.981945)+((Clust.ppm/1000000)*a) & x>(b<-21.981945)-((Clust.ppm/1000000)*b),11,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-27.994915)+((Clust.ppm/1000000)*a) & x>(b<-27.994915)-((Clust.ppm/1000000)*b),12,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-28.00614801)+((Clust.ppm/1000000)*a) & x>(b<-28.00614801)-((Clust.ppm/1000000)*b),13,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-28.031300128)+((Clust.ppm/1000000)*a) & x>(b<-28.031300128)-((Clust.ppm/1000000)*b),14,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-28.990163592)+((Clust.ppm/1000000)*a) & x>(b<-28.990163592)-((Clust.ppm/1000000)*b),15,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-29.002739652)+((Clust.ppm/1000000)*a) & x>(b<-29.002739652)-((Clust.ppm/1000000)*b),16,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-29.03912516)+((Clust.ppm/1000000)*a) & x>(b<-29.03912516)-((Clust.ppm/1000000)*b),17,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-29.974179175)+((Clust.ppm/1000000)*a) & x>(b<-29.974179175)-((Clust.ppm/1000000)*b),18,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-30.010564684)+((Clust.ppm/1000000)*a) & x>(b<-30.010564684)-((Clust.ppm/1000000)*b),19,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-31.018498)+((Clust.ppm/1000000)*a) & x>(b<-31.018498)-((Clust.ppm/1000000)*b),20,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-32.026214748)+((Clust.ppm/1000000)*a) & x>(b<-32.026214748)-((Clust.ppm/1000000)*b),21,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-37.955882)+((Clust.ppm/1000000)*a) & x>(b<-37.955882)-((Clust.ppm/1000000)*b),22,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-42.010565)+((Clust.ppm/1000000)*a) & x>(b<-42.010565)-((Clust.ppm/1000000)*b),23,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-43.005813656)+((Clust.ppm/1000000)*a) & x>(b<-43.005813656)-((Clust.ppm/1000000)*b),24,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-43.018389716)+((Clust.ppm/1000000)*a) & x>(b<-43.018389716)-((Clust.ppm/1000000)*b),25,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-43.0547752)+((Clust.ppm/1000000)*a) & x>(b<-43.0547752)-((Clust.ppm/1000000)*b),26,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-43.989829239)+((Clust.ppm/1000000)*a) & x>(b<-43.989829239)-((Clust.ppm/1000000)*b),27,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-44.997654271)+((Clust.ppm/1000000)*a) & x>(b<-44.997654271)-((Clust.ppm/1000000)*b),28,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-46.00548)+((Clust.ppm/1000000)*a) & x>(b<-46.00548)-((Clust.ppm/1000000)*b),29,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-46.0419)+((Clust.ppm/1000000)*a) & x>(b<-46.0419)-((Clust.ppm/1000000)*b),30,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-56.062600257)+((Clust.ppm/1000000)*a) & x>(b<-56.062600257)-((Clust.ppm/1000000)*b),31,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-57.070425289)+((Clust.ppm/1000000)*a) & x>(b<-57.070425289)-((Clust.ppm/1000000)*b),32,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-59.013304335)+((Clust.ppm/1000000)*a) & x>(b<-59.013304335)-((Clust.ppm/1000000)*b),33,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-59.037113785)+((Clust.ppm/1000000)*a) & x>(b<-59.037113785)-((Clust.ppm/1000000)*b),34,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-60.021129367)+((Clust.ppm/1000000)*a) & x>(b<-60.021129367)-((Clust.ppm/1000000)*b),35,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-63.961904)+((Clust.ppm/1000000)*a) & x>(b<-63.961904)-((Clust.ppm/1000000)*b),36,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-75.032029)+((Clust.ppm/1000000)*a) & x>(b<-75.032029)-((Clust.ppm/1000000)*b),37,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-79.956814859)+((Clust.ppm/1000000)*a) & x>(b<-79.956814859)-((Clust.ppm/1000000)*b),38,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-86.000395)+((Clust.ppm/1000000)*a) & x>(b<-86.000395)-((Clust.ppm/1000000)*b),39,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-89.047679)+((Clust.ppm/1000000)*a) & x>(b<-89.047679)-((Clust.ppm/1000000)*b),40,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-121.019753)+((Clust.ppm/1000000)*a) & x>(b<-121.019753)-((Clust.ppm/1000000)*b),41,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-129.042594)+((Clust.ppm/1000000)*a) & x>(b<-129.042594)-((Clust.ppm/1000000)*b),42,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-146.036779432)+((Clust.ppm/1000000)*a) & x>(b<-146.036779432)-((Clust.ppm/1000000)*b),43,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-146.069142189)+((Clust.ppm/1000000)*a) & x>(b<-146.069142189)-((Clust.ppm/1000000)*b),44,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-152.010958607)+((Clust.ppm/1000000)*a) & x>(b<-152.010958607)-((Clust.ppm/1000000)*b),45,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-162.052825)+((Clust.ppm/1000000)*a) & x>(b<-162.052825)-((Clust.ppm/1000000)*b),46,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-163.030318)+((Clust.ppm/1000000)*a) & x>(b<-163.030318)-((Clust.ppm/1000000)*b),47,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-176.032087974)+((Clust.ppm/1000000)*a) & x>(b<-176.032087974)-((Clust.ppm/1000000)*b),48,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-176.047344115)+((Clust.ppm/1000000)*a) & x>(b<-176.047344115)-((Clust.ppm/1000000)*b),49,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-178.041213189)+((Clust.ppm/1000000)*a) & x>(b<-178.041213189)-((Clust.ppm/1000000)*b),50,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-180.06339)+((Clust.ppm/1000000)*a) & x>(b<-180.06339)-((Clust.ppm/1000000)*b),51,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-192.027)+((Clust.ppm/1000000)*a) & x>(b<-192.027)-((Clust.ppm/1000000)*b),52,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-194.042655)+((Clust.ppm/1000000)*a) & x>(b<-194.042655)-((Clust.ppm/1000000)*b),53,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-198.014035)+((Clust.ppm/1000000)*a) & x>(b<-198.014035)-((Clust.ppm/1000000)*b),54,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-203.07937252)+((Clust.ppm/1000000)*a) & x>(b<-203.07937252)-((Clust.ppm/1000000)*b),55,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-215.994605)+((Clust.ppm/1000000)*a) & x>(b<-215.994605)-((Clust.ppm/1000000)*b),56,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-221.089937203)+((Clust.ppm/1000000)*a) & x>(b<-221.089937203)-((Clust.ppm/1000000)*b),57,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-239.993994)+((Clust.ppm/1000000)*a) & x>(b<-239.993994)-((Clust.ppm/1000000)*b),58,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-255.988909)+((Clust.ppm/1000000)*a) & x>(b<-255.988909)-((Clust.ppm/1000000)*b),59,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-258.004564)+((Clust.ppm/1000000)*a) & x>(b<-258.004564)-((Clust.ppm/1000000)*b),60,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-273.096087)+((Clust.ppm/1000000)*a) & x>(b<-273.096087)-((Clust.ppm/1000000)*b),61,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-273.999479)+((Clust.ppm/1000000)*a) & x>(b<-273.999479)-((Clust.ppm/1000000)*b),62,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-275.111737)+((Clust.ppm/1000000)*a) & x>(b<-275.111737)-((Clust.ppm/1000000)*b),63,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-307.083811)+((Clust.ppm/1000000)*a) & x>(b<-307.083811)-((Clust.ppm/1000000)*b),64,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-352.06418)+((Clust.ppm/1000000)*a) & x>(b<-352.06418)-((Clust.ppm/1000000)*b),65,x)}))
+            Precursor.Inter.frag.name<-(apply(Precursor.Inter.frag.name,2,function(x){ifelse(x<(a<-388.08531)+((Clust.ppm/1000000)*a) & x>(b<-388.08531)-((Clust.ppm/1000000)*b),66,x)}))
             
             Precursor.Inter.frag.name<-round(Precursor.Inter.frag.name,digits=4)
             
@@ -452,16 +452,16 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",mode="negat
       }
     }
   }
-  #}  
+    
   MS.MS.Matched.sign.features<-as.data.frame(MS.MS.Matched.sign.features)
   unique.Sign.features<-unique(MS.MS.Matched.sign.features[,"Sign.feat.EIC"]) ###unique feature matches
   
   
-  Potential.gluc<-(apply(conjugates.mass.losses,2,function(x) {x<(176.032088+delta) & x>(176.032088-delta)}))+0 
-  Potential.sulf<-(apply(conjugates.mass.losses,2,function(x) {x<(79.95681456+delta) & x>(79.95681456-delta)}))
-  Potential.digluc<-(apply(conjugates.mass.losses,2,function(x) {x<((176.032088*2)+delta) & x>((176.032088*2)-delta)}))+0 
-  Potential.disulf<-(apply(conjugates.mass.losses,2,function(x) {x<((79.95681456*2)+delta) & x>((79.95681456*2)-delta)}))+0 
-  Potential.gluc.sulf<-(apply(conjugates.mass.losses,2,function(x) {x<((176.032088+79.95681456)+delta) & x>((176.032088+79.95681456)-delta)}))+0 
+  Potential.gluc<-(apply(conjugates.mass.losses,2,function(x) {x<(a<-176.032088)+((Clust.ppm/1000000)*a) & x>(b<-176.032088)-((Clust.ppm/1000000)*b)}))+0 
+  Potential.sulf<-(apply(conjugates.mass.losses,2,function(x) {x<(a<-79.95681456)+((Clust.ppm/1000000)*a) & x>(b<-79.95681456)-((Clust.ppm/1000000)*b)}))+0
+  Potential.digluc<-(apply(conjugates.mass.losses,2,function(x) {x<((a<-176.032088*2))+((Clust.ppm/1000000)*a) & x>(b<-(176.032088*2))-((Clust.ppm/1000000)*b)}))+0 
+  Potential.disulf<-(apply(conjugates.mass.losses,2,function(x) {x<((a<-79.95681456*2))+((Clust.ppm/1000000)*a) & x>(b<-(79.95681456*2))-((Clust.ppm/1000000)*b)}))+0 
+  Potential.gluc.sulf<-(apply(conjugates.mass.losses,2,function(x) {x<(a<-(176.032088+79.95681456))+((Clust.ppm/1000000)*a) & x>(b<-(176.032088+79.95681456))-((Clust.ppm/1000000)*b)}))+0 
   
   Glucuronide<-ifelse(rowSums(Potential.gluc)>=1,"Glucuronide",0)
   Sulfate<-ifelse(rowSums(Potential.sulf)>=1,"Sulfate",0)

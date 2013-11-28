@@ -40,10 +40,12 @@ Auto.Install.Synth.test<-function(){
   PreProc.QC.RLSC<-"http://bit.ly/1bl0h8H"
   eval(parse(file=PreProc.QC.RLSC))
   
-  setwd(R.scripts.dir)
+  
   ###Perform PreProc.QC.LSC function on synthetic data###
   PreProc.QC.RLSC(X="Synthetic_X_data.csv",wd=Parent.wd,
                   XCMS_dir=XCMS_dir)
+  
+  setwd(R.scripts.dir)
   dump(c(lsf.str()), file="PreProc.QC.RLSC.R")
   rm(PreProc.QC.RLSC)
   
@@ -71,7 +73,7 @@ Auto.Install.Synth.test<-function(){
  
  
   ###Auto.MS.MS.match function data and save function###
-  Auto.MV.Regress<-"http://bit.ly/1fIvqES"
+  Auto.MS.MS.match<-"http://bit.ly/1fIvqES"
   eval(parse(file=Auto.MS.MS.match))
    
   setwd(R.scripts.dir)
