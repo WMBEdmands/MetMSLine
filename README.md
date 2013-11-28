@@ -108,7 +108,7 @@ DBAnnotate.R
 Automated putative biomarker annotation function based upon high mass accuracy tolerance matching. A user supplied list of biologically plausible/selected metabolites is used to generate all iterations of common Phase II conjugate modifications and electrospray adducts in a “shotgun” approach. The combination of this “shotgun” method and the use of a narrowed list of biologically plausible metabolites represent a balance between the “false negative” and “false positive” rates of biomarker annotation and metabolite prediction. Following completion the results table must be visually inspected to decide on plausibility of subsequent biomarker identifications. 
 
 ```
->   DBAnnotate( X="Features_above_threshold.csv", database="metabolite_DB.csv", mode="negative", conjugates=c("Gluc","Sulf","DiGluc","DiSulf","GlucSulf","NAcCys"), MassAcc=10, wd="D:\\R_data_processing\\STUDY NAME\\Auto.MV.Regress.results\\")
+>   DBAnnotate( X="Features_above_threshold.csv", database="metabolite_DB.csv", mode="negative", conjugates=c("Gluc","Sulf","DiGluc","DiSulf","GlucSulf","NAcCys"), MassAcc=10, wd="D:\\R_data_processing\\STUDY NAME\\",unknowns.dir=”"D:\\R_data_processing\\STUDY NAME\\Auto.MV.Regress.results\\")
 ```
 
 Arguments: -
@@ -119,5 +119,5 @@ Arguments: -
 3.	**mode** – mass spectrometer ionisation mode either positive or negative (NB. Must be lower case).
 4.	**Conjugates** – a list (not exhaustive) of potential phase II modifications of metabolites in human biofluids. Included are glucuronides (“Gluc”), sulfates (“Sulf”), diglucuronides (“DiGluc”), disulfates (“DiSulf”), mixed glucuronide sulfates (“GlucSulf”) and N-acetyl cysteine conjugates (“NAcCys”). By default all conjugates are considered however to remove conjugates simply delete entries from the list (eg. conjugates=c(“Sulf”, “NAcCys”)).
 5.	**MassAcc** – mass accuracy tolerance in parts per million for biomarker annotation dependent on mass spectrometer performance (default = 10 ppm).
-6.	**wd** - the address of your Auto.MV.Regress.results directory or MS/MS fragmentation data file folder (e.g. “MS_MS_mzXML”). 
-
+6.	**wd** - name of study parent working directory in inverted commas (default="D:\\R_data_processing\\STUDY NAME\\").
+7.	**unknowns.dir** - the directory address of your Auto.MV.Regress.results directory or MS/MS fragmentation data file folder (e.g. “MS_MS_mzXML”). 
