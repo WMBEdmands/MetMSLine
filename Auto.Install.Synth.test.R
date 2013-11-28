@@ -18,11 +18,17 @@ Auto.Install.Synth.test<-function(){
   ###Address of Y synthetic data on GitHub###
   Y.UrlAddress<-"http://bit.ly/17VCYS6"
   
+  ###Address of Metabolite synthetic data on GitHub###
+  Metab.UrlAddress<-"http://bit.ly/IiSdc4"
+  
   ###Address of X synthetic MS data on GitHub###
   X.UrlAddress<-"http://bit.ly/1a3vXJk"
   
   ###Download data and write to .csv files in working directory###
-  write.csv(Synthetic_Y_data<-source_GitHubData(url = Y.UrlAddress,row.names=1),"Synthetic_Y_data.csv")
+  write.csv(Synthetic_Y_data<-source_GitHubData(url = "http://bit.ly/17VCYS6",row.names=1),"Synthetic_Y_data.csv")
+  ###Download Synthetic metabolite data and write to .csv in workinng directory###
+  write.csv(Synthetic_Metabolite_DB<-source_GitHubData(url = Metab.UrlAddress,row.names=1),"Synthetic_Metabolite_DB.csv")
+    
   ##create XCMS directory###
   XCMS_dir<-paste(Parent.wd,"XCMS\\",sep="")
   
@@ -80,9 +86,13 @@ Auto.Install.Synth.test<-function(){
   dump(c(lsf.str()), file="Auto.MS.MS.match.R")
   rm(Auto.MS.MS.match)
   
-  ###Auto.MS.MS.match function data and save function###
+  ###DBAnnotate function data and save function###
   DBAnnotate<-"http://bit.ly/18nxCPU"
   eval(parse(file=DBAnnotate))
+  
+  
+  ###Perform DBAnnotate function on synthetic data###
+  DBAnnotate(database="Synthetic_Metabolite_DB.csv",wd=Parent.wd,unknowns.dir=paste(Parent.wd,"Auto.MV.Regress.results\\",sep=""))
   
   setwd(R.scripts.dir)
   dump(c(lsf.str()), file="DBAnnotate.R")

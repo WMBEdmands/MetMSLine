@@ -212,8 +212,8 @@ RAW_QCs<-RAW_QCs[NegMat_rowsums==0,]
  
   ###.csv file creation###
   
-  Curve<-cbind(XCMS_pos_variables,Curve_pos_variables)
-  write.csv (Curve,file="Curve.csv")
+ # Curve<-cbind(XCMS_pos_variables,Curve_pos_variables)
+#  write.csv (Curve,file="Curve.csv")
   write.csv (QC_Corrected,file="QC_Corrected.csv",row.names=FALSE)
   write.csv (Sum_reproducible_features,file="Sum_reproducible_features.csv",row.names=FALSE)
   write.csv(Raw_data_RSD,"Raw_data_RSD.csv",row.names=FALSE)

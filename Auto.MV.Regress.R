@@ -562,7 +562,7 @@ if (heatmap==TRUE) {
   
 }
 significantmarker_data<-significantmarker_data[order(significantmarker_data[,"XCMS_EIC"]),]
-
+significantmarker_data<-subset(significantmarker_data,select=-c(X2))
 Ycor<-Y
 
 ####split significant features into their respective subfolders and save also add column of scatterplot locations#####

@@ -1,15 +1,36 @@
-metabolite_name,theoretical mass
-Metabolite 1,220.295498
-Metabolite 2,999.5465316
-Metabolite 3,183.2272783
-Metabolite 4,966.8776112
-Metabolite 5,180.225462
-Metabolite 6,750.0382489
-Metabolite 7,856.9580072
-Metabolite 8,281.2264443
-Metabolite 9,1184.376159
-Metabolite 10,139.2253504
-Metabolite 11,140.2566509
-Metabolite 12,220.2952419
-Metabolite 13,810.3021074
-Metabolite 14,412.2784263
+Metabolite_name,Theoretical mass
+metabolite_1,183.2262573
+metabolite_2,181.2936133
+metabolite_3,383.3255599
+metabolite_4,840.2682411
+metabolite_5,588.3105143
+metabolite_6,871.3102298
+metabolite_7,345.1915843
+metabolite_8,840.8682138
+metabolite_9,176.1969022
+metabolite_10,711.861148
+metabolite_11,217.2008745
+metabolite_12,345.1866471
+metabolite_13,154.2346476
+metabolite_14,871.8972267
+metabolite_15,412.2777421
+metabolite_16,878.0851946
+metabolite_17,477.5182899
+metabolite_18,878.0805074
+metabolite_19,1039.105979
+metabolite_20,155.2681713
+metabolite_21,182.2294673
+metabolite_22,253.5170357
+metabolite_23,181.2962658
+metabolite_24,332.2845662
+metabolite_25,724.9004284
+metabolite_26,218.1990538
+metabolite_27,396.327586
+metabolite_28,285.2591768
+metabolite_29,746.0377661
+metabolite_30,336.2532774
+metabolite_31,1184.369495
+metabolite_32,138.238669
+metabolite_33,330.2706058
+metabolite_34,220.2947069
+metabolite_35,282.5051067
