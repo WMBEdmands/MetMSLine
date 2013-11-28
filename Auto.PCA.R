@@ -5,10 +5,6 @@ Auto.PCA<- function(X="QC_Corrected.csv",Yvar="Y.csv",QCInt=5,PCA.method="svd",s
   ##function saves all figures according to user defined settings.
   ##Function then performs linear regression analysis to any Y-variable where non-zero data exists for more than 10 samples, using pearson product moment correlation with p-values calculated by F-test and then corrected by Bonferroni's
   ##method, subfolders for each Y-variable are generated and results saved within. Scatterplots demonstrating the relationship between X and Y are also automatically generated.
-  #Add hyperlink to each scatterplot in each subfolder
-  ##delta represents the acceptable mass accuracy for cluster ion identification
-  ##outlier removal Hotellings tolerance
-  ##alfa = Hotelling T2 distribution 
   
   wd<-paste(wd,"PreProc.QC.RLSC.results\\",sep="")
   

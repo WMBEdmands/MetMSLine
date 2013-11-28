@@ -1,11 +1,14 @@
-DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.csv",mode="negative",conjugates=c("Gluc","Sulf","DiGluc","DiSulf","GlucSulf","NAcCys"),MassAcc=10,wd="D:\\R_data_processing\\STUDY NAME\\Auto.MV.Regress.results\\"){
+DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.csv",mode="negative",conjugates=c("Gluc","Sulf","DiGluc","DiSulf","GlucSulf","NAcCys"),MassAcc=10,wd="D:\\R_data_processing\\STUDY NAME\\",unknowns.dir="D:\\R_data_processing\\STUDY NAME\\Auto.MV.Regress.results\\"){
   # input XCMS diff report and tentative metabolite list with monoisotopic masses, also require
   # ionisation mode, anticipated acceptable mass accuracy (dependent on mass spectrometer performance) and retention time window for adduct determination returns txt file in working
-  setwd(wd)
+  setwd(unknowns.dir)
   
   sample<-read.csv(X,header=T)
   #sample<-sample[,-1]
+  setwd(wd)
   MetaboliteData<-data.frame(read.csv(database,header=T))
+  setwd(unknowns.dir)
+  
   addColumns<-length(MetaboliteData)-2
    
   ParentIDno<-seq(1,length(MetaboliteData[,1]),1) #Parent unique ID number
