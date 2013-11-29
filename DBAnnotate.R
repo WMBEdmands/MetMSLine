@@ -208,7 +208,7 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   
   unmatched<-sample[-XCMSindex_belowdelta,]
  
-  XCMSaligned<-subset(XCMSaligned, select=-c(XCMS_EIC,MetabIDno,Monoisotopic_mass,ParentIDno,name))
+  XCMSaligned<-subset(XCMSaligned, select=-c(XCMS_EIC,MetabIDno,Monoisotopic_mass,ParentIDno,name,X))
   
   write.csv (XCMSaligned, file="Allresults_belowMassTol.csv",row.names=FALSE)
 

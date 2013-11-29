@@ -25,7 +25,7 @@ Auto.Install.Synth.test<-function(){
   X.UrlAddress<-"http://bit.ly/1a3vXJk"
   
   ###Download data and write to .csv files in working directory###
-  write.csv(Synthetic_Y_data<-source_GitHubData(url = "http://bit.ly/17VCYS6",row.names=1),"Synthetic_Y_data.csv")
+  write.csv(Synthetic_Y_data<-source_GitHubData(url = Y.UrlAddress,row.names=1),"Synthetic_Y_data.csv")
   ###Download Synthetic metabolite data and write to .csv in workinng directory###
   write.csv(Synthetic_Metabolite_DB<-source_GitHubData(url = Metab.UrlAddress,row.names=1),"Synthetic_Metabolite_DB.csv")
     
