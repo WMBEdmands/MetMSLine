@@ -1,5 +1,4 @@
-Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="negative", wd="D:\\R_data_processing\\STUDY NAME\\",  mzXML.dir="D:\\R_data_processing\\STUDY NAME\\MS_MS_mzXML\\", TICfilter=5000,Precursor.ppm=10,Frag.ppm=20,ret=5, Parent.tol=0.1, Fragment.tol=0.5){                                                
-  ###minIntensity = minimum MS MS fragment intensities
+Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="negative", wd="D:\\R_data_processing\\STUDY NAME\\",  mzXML.dir="D:\\R_data_processing\\STUDY NAME\\MS_MS_mzXML\\", TICfilter=5000,Precursor.ppm=10,Frag.ppm=20,ret=5, Parent.tol=0.1, Fragment.tol=0.5){                                                  ###minIntensity = minimum MS MS fragment intensities
   ##HMDB MS MS parent search tolerance. Set a broad tolerance here.
   ##mode for HMDB MS MS search                           
   ###HMDB MS MS fragment search tolerance.   
@@ -60,32 +59,36 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="neg
     Auto_MS_MS.Intensity.filtered<-Auto_MS_MS.Mslevel2[Intensity.filter.index]#TIC intensity filtered
     
     ###Precursor Mz list
-     
+    
     PrecursorMz.df<-data.frame()
     collisionEnergy.df<-data.frame()
     retentionTime.df<-data.frame()
+    MS_MS_Scan.num.df<-data.frame()
     
     for (i in 1:length(Auto_MS_MS.Intensity.filtered)) {
       PrecursorMz<-Auto_MS_MS.Intensity.filtered[[i]][[2]]$precursorMz
       collisionEnergy<-Auto_MS_MS.Intensity.filtered[[i]][[2]]$collisionEnergy
       retentionTime<-Auto_MS_MS.Intensity.filtered[[i]][[2]]$retentionTime
+      MS_MS_Scan.num<-Auto_MS_MS.Intensity.filtered[[i]][[2]]$num
       
       PrecursorMz.df<-rbind(PrecursorMz.df,PrecursorMz)
       collisionEnergy.df<-rbind(collisionEnergy.df,collisionEnergy)
-      retentionTime.df<-rbind(retentionTime.df,retentionTime)}
+      retentionTime.df<-rbind(retentionTime.df,retentionTime)
+      MS_MS_Scan.num.df<-rbind(MS_MS_Scan.num.df,MS_MS_Scan.num)
+    }
     
-    MS_MS_unique_ID<-seq(1,nrow(PrecursorMz.df),1)
     
-    MS_MS_spectra.index<-cbind(MS_MS_unique_ID,PrecursorMz.df,collisionEnergy.df,retentionTime.df)
-    colnames(MS_MS_spectra.index)<-c("MS_MS_unique_ID","PrecursorMz","collisionEnergy","retentionTime")
+    
+    MS_MS_spectra.index<-cbind(MS_MS_Scan.num.df,PrecursorMz.df,collisionEnergy.df,retentionTime.df)
+    colnames(MS_MS_spectra.index)<-c("MS_MS_Scan.num","PrecursorMz","collisionEnergy","retentionTime")
     
     ######search match function#####
     PrecursorMz<-as.numeric(MS_MS_spectra.index[,"PrecursorMz"])
-    MS_MS_unique_ID<-as.numeric(MS_MS_spectra.index[,"MS_MS_unique_ID"])
+    MS_MS_Scan.num<-as.numeric(MS_MS_spectra.index[,"MS_MS_Scan.num"])
     collisionEnergy<-as.numeric(MS_MS_spectra.index[,"collisionEnergy"])
     retentionTime<-as.numeric(MS_MS_spectra.index[,"retentionTime"])
     
-   
+    
     Match.results <- data.frame() #empty dataframe for DB search results
     
     for(i in 1:length(Med.mz)){
@@ -96,7 +99,7 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="neg
         
         if( length(index) > 0) {
           Matchmass<-PrecursorMz[k][index]
-          ids <- MS_MS_unique_ID[k][index]
+          ids <- MS_MS_Scan.num[k][index]
           Collision.energy<-collisionEnergy[k][index]
           MS_MS.RT<-retentionTime[k][index]
           
@@ -108,7 +111,7 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="neg
     
     if (nrow(Match.results)!=0 & nrow(Match.results)>1){
       r.df <- as.matrix(Match.results)
-      r.dfcolnames<-c("Sign.feat.EIC","Sign.feat.mz","Sign.feat.RT","MS_MS_unique_ID","PrecursorMz","collision.energy","MS_MS.RT")
+      r.dfcolnames<-c("Sign.feat.EIC","Sign.feat.mz","Sign.feat.RT","MS_MS_Scan.num","PrecursorMz","collision.energy","MS_MS.RT")
       colnames(r.df)<-r.dfcolnames
       
       
@@ -123,7 +126,7 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="neg
       
       if (sum.matches!=0 & sum.matches>1){
         r.df<-r.df[RT.match.index,]
-        MS_MS_matched.index<-r.df[,"MS_MS_unique_ID"]
+        MS_MS_matched.index<-r.df[,"MS_MS_Scan.num"]
         Matched.Auto.MS.MS<-Auto_MS_MS.Intensity.filtered[MS_MS_matched.index] ##Mz and RT matched list
         
         Intensity.results <- data.frame() #empty dataframe for intensity results
@@ -154,9 +157,9 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="neg
             for (i in 1:length(Matched.Auto.MS.MS)){
               
               Frag.Intense<-Matched.Auto.MS.MS[[i]][[1]]$intensity
-            
+              
               Frag.mass <-Matched.Auto.MS.MS[[i]][[1]]$mass
-             
+              
               Collision.energy.plot<-Matched.Auto.MS.MS[[i]][[2]]$collisionEnergy
               
               File.origin<-rep(Auto.MS.MS.file.name,length(Matched.Auto.MS.MS))
@@ -205,7 +208,7 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="neg
             
             #######Collating MS MS matched features######
             sign.features.MS.MS.matched<-rbind(sign.features.MS.MS.matched,Sign.features.matched)
-  
+            
             Matched.PrecursorMz<-as.matrix(Matched.MS.MS.fragment.df[,"PrecursorMz"])
             Matched.Frag.1.mz<-as.matrix(Matched.MS.MS.fragment.df[,"Frag.1.mz"])##first fragment
             Matched.Frag.2.mz<-as.matrix(Matched.MS.MS.fragment.df[,"Frag.2.mz"])#
@@ -377,12 +380,12 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="neg
             #################################END INTER-FRAGMENT IDENTIFICATION#####################################################
             
             conjugates.mass.loss<-cbind(Fragments.matrix,(as.vector(Matched.PrecursorMz)-Fragments.matrix))
-                      
+            
             ######################PLOT CREATION LOOP############
             EIC.name.plots<-r.df[,1]
             XCMS.mz<-round(r.df[,2],digits=0)
             XCMS.rt<-round(r.df[,3],digits=0)
-            MS.MS.unique.ID.plot<-r.df[,4]
+            MS.MS.Scan.num.plot<-r.df[,4]
             
             if(length(Matched.Auto.MS.MS)>1){
               
@@ -414,7 +417,7 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="neg
                 
                 EIC.name<-EIC.name.plots[i]
                 
-                MS.MS.unique.ID<-MS.MS.unique.ID.plot[i]
+                MS.MS.Scan.num<-MS.MS.Scan.num.plot[i]
                 
                 Intensity.plot<-round(Frag.Intense,digits=4)
                 Mass.plot<-round(Frag.mass,digits=4)
@@ -423,7 +426,7 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="neg
                 Intensity.plot<-Intensity.plot[MS.MS.plot.lim.index]
                 XCMS.feature<-paste("M",XCMS.mz[i],"T",XCMS.rt[i],sep="")
                 
-                plot.file.name<-paste(Auto.MS.MS.file.name,MS.MS.unique.ID,"XCMS_EIC",EIC.name,XCMS.feature,"eV",Collision.energy.plot,sep="_")
+                plot.file.name<-paste(Auto.MS.MS.file.name,MS.MS.Scan.num,"XCMS_EIC",EIC.name,XCMS.feature,"eV",Collision.energy.plot,sep="_")
                 plot.file.name<-paste(plot.file.name,".png",sep="")
                 
                 Plot.url<-as.data.frame(paste(mzXML.dir,plot.file.name,sep="")) ##url for corresponding MS MS file 
@@ -453,7 +456,7 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="neg
       }
     }
   }
-    
+  
   MS.MS.Matched.sign.features<-as.data.frame(MS.MS.Matched.sign.features)
   unique.Sign.features<-unique(MS.MS.Matched.sign.features[,"Sign.feat.EIC"]) ###unique feature matches
   
@@ -506,15 +509,15 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="neg
   MS_MS.matched.dummy<-as.matrix(Original.EICs %in% unique.Sign.features)+0 ###dummy matrix matched sign features
   colnames(MS_MS.matched.dummy)<-"Auto.MS.MS.matched"
   Original.Sign.Features<-cbind(Original.Sign.Features,MS_MS.matched.dummy)
-    
+  
   ####conjugate and mass loss matching####
-    
+  
   ###Index matching values###
   Matched.Original.features.index<-match(MS.MS.Matched.sign.features[,"Sign.feat.EIC"],Original.Sign.Features[,"XCMS_EIC"])
   MS.MS.Matched.sign.features<-cbind(Original.Sign.Features[Matched.Original.features.index,],MS.MS.Matched.sign.features,Precursor.Inter.frag.names)
   
   
- 
+  
   
   
   setwd(wd)
