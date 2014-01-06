@@ -22,7 +22,7 @@ Arguments: -
 4.	**SGroups** – number of study groups in the sample ie. mzXML file subdirectories prior to XCMS peak-picking (defaults to 3 a good subdirectory structure is to have QCs, samples and blanks in 3 seperate subdirectories).
 5.	**f** - the smoother span (proportion of points in the plot which influence the smooth at each value)(default is 1/7). 
 6.	**a** - alpha for generalized log transform (default is 1).
-7.	**RSD** - percentage relative standard deviation cutoff for reproducible features assessed from the pooled QC samples (default is 30% RSD).
+7.	**RSD** - percentage relative standard deviation cutoff for reproducible features assessed from the pooled QC samples following signal smoothing (default is 30% RSD).
 8.	**wd** - name of study parent working directory in inverted commas (default="D:\\R_data_processing\\STUDY NAME\\").
 9.	**XCMS_dir** - working directory where XCMS output file is located in inverted commas (default="D:\\R_data_processing\\STUDY NAME\\XCMS\\").
 
