@@ -42,9 +42,11 @@
 <h3>
 <a name="required-packages" class="anchor" href="#required-packages"><span class="octicon octicon-link"></span></a>Required packages</h3>
 
-<p>-Initially install all R package dependencies by typing or pasting this line of code into the command line of the R or RStudio console, you will only need to do this once per computer operating system:</p>
+<p>-Initially install all R package dependencies by typing or pasting these lines of code into the command line of the R or RStudio console, you will only need to do this once per computer operating system:</p>
 
 <pre><code>install.packages(c("devtools","httr","zoo", "pcaMethods", "gplots", "ggplot2", "pls", "sfsmisc", "RColorBrewer", "readMzXmlData"))
+source("http://bioconductor.org/biocLite.R")
+biocLite("pcaMethods")
 </code></pre>
 
 <h3>
