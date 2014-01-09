@@ -42,6 +42,9 @@ Auto.Install.Synth.test<-function(){
   R.scripts.dir<-paste(Parent.wd,"MetMSLine.functions\\",sep="")
   dir.create(R.scripts.dir)
   
+  ###Remove source_GitHubData function###
+	rm(source_GitHubData)
+
   ###PreProc.QC.RLSC function data and save function###
   PreProc.QC.RLSC<-"http://bit.ly/1bl0h8H"
   eval(parse(file=PreProc.QC.RLSC))
