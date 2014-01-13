@@ -140,8 +140,8 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   results <- data.frame() #empty dataframe for DB search results
   
   for(i in 1:length(ions)){
-    max = ions[i]+0.1
-    min = ions[i]-0.1
+    max = ions[i]+0.01
+    min = ions[i]-0.01
     for (k in 1:A) {
       index <- which (DBMat[,k]<max & DBMat[,k]>min)
       
