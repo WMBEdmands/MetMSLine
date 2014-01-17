@@ -16,7 +16,7 @@ RSD=30,a=1,scatter.plots=TRUE,wd="D:\\R_data_processing\\STUDY NAME\\",XCMS_dir=
 Arguments: -
 --------------------
 
-1.	**X** - XCMS diffreport name in inverted commas saved as a .tsv (tab separated values) file
+1.	**X** - XCMS diffreport name in inverted commas saved as either a .tsv, .txt or .csv (tab separated values, text or comma seperated values) file
 2.	**CCQC** - number of column conditioning QCs (default is 30).
 3.	**QCInt** - QC injection interval (default is 10 or after every 9th sample). 
 4.	**SGroups** � number of study groups in the sample ie. mzXML file subdirectories prior to XCMS peak-picking (defaults to 3 a good subdirectory structure is to have QCs, samples and blanks in 3 seperate subdirectories).
