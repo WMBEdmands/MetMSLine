@@ -23,13 +23,7 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="neg
     setwd(mzXML.dir)
     ###identify all mzXML files in raw-data directory###
     files = list.files(pattern = "*.mzXML")
-    Length.files<-length(files)
-    files.seq<-seq(1,Length.files,1)
-    file.name<-files[1]
-    file.name<-substring(file.name,2)
-    files<-paste(files.seq,file.name,sep="") ###OPTION OF CHANGING STARTING FILE NAME#####
-    
-    
+       
     
     for (i in 1:length(files)) {
       Auto.MS.MS.file<-readMzXmlFile(files[i])
