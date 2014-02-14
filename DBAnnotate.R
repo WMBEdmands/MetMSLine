@@ -1,4 +1,4 @@
-DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.csv",mode="negative",conjugates=c("Gluc","Sulf","DiGluc","DiSulf","GlucSulf","NAcCys"),MassAcc=10,wd="D:\\R_data_processing\\STUDY NAME\\",unknowns.dir="D:\\R_data_processing\\STUDY NAME\\Auto.MV.Regress.results\\"){
+DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.csv",mode="negative",conjugates=c("Gluc","Sulf","DiGluc","DiSulf","GlucSulf","NAcCys","Glyc"),MassAcc=10,wd="D:\\R_data_processing\\STUDY NAME\\",unknowns.dir="D:\\R_data_processing\\STUDY NAME\\Auto.MV.Regress.results\\"){
   # input XCMS diff report and tentative metabolite list with monoisotopic masses, also require
   # ionisation mode, anticipated acceptable mass accuracy (dependent on mass spectrometer performance) and retention time window for adduct determination returns txt file in working
   setwd(unknowns.dir)
@@ -14,13 +14,13 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   ParentIDno<-seq(1,length(MetaboliteData[,1]),1) #Parent unique ID number
   MetaboliteData<-cbind(ParentIDno,MetaboliteData) #Parent ID number concatenated before conjugate and adduct calculation
   
-  conjugatesID<-c("Gluc","Sulf","DiGluc","DiSulf","GlucSulf","NAcCys") #all conjugates more need to be added here when more conjugates are considered
+  conjugatesID<-c("Gluc","Sulf","DiGluc","DiSulf","GlucSulf","NAcCys","Glyc") #all conjugates more need to be added here when more conjugates are considered
   conjugatesmatch<-as.numeric(which(conjugatesID%in%conjugates)) # matches user input conjugates with complete ID vector
   
   
   #Phase 2 conjugation table creation:: according to the character vector conjugates provided in the function.
-  Conjugate_name_label<-c("_glucuronide","_sulfate","_diglucuronide","_diSulfate","_glucuronidesulfate","_Nacetylcysteine")
-  Conjugate_column<-c("Glucuronide","Sulfate","DiGlucuronide","DiSulfate","GlucuronideSulfate","Nacetylcysteine")
+  Conjugate_name_label<-c("_glucuronide","_sulfate","_diglucuronide","_diSulfate","_glucuronidesulfate","_Nacetylcysteine","_Glycine")
+  Conjugate_column<-c("Glucuronide","Sulfate","DiGlucuronide","DiSulfate","GlucuronideSulfate","Nacetylcysteine","Glycine")
   Conjugate_name_labels<-Conjugate_name_label[conjugatesmatch] # selecting conjugate text to concatenate
   Conjugate_column<-Conjugate_column[conjugatesmatch]
   
@@ -31,7 +31,8 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   DiSulf=Sulf*2  
   GlucSulf=Gluc+Sulf
   NAcCys=163.030318
-  Mono_mass_conjugate<-c(Gluc,Sulf,DiGluc,DiSulf,GlucSulf,NAcCys) #monoisotopic mass for conjugate
+  Glyc=75.032029
+  Mono_mass_conjugate<-c(Gluc,Sulf,DiGluc,DiSulf,GlucSulf,NAcCys,Glyc) #monoisotopic mass for conjugate
   Conjugate_mono_masses<-Mono_mass_conjugate[conjugatesmatch] #match mono masses to be utilised
   
   ConjugateCharVector<-rep(Conjugate_column, each=length(ParentIDno))#character vector for concatenation
@@ -140,8 +141,8 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   results <- data.frame() #empty dataframe for DB search results
   
   for(i in 1:length(ions)){
-    max = ions[i]+0.01
-    min = ions[i]-0.01
+    max = ions[i]+0.1
+    min = ions[i]-0.1
     for (k in 1:A) {
       index <- which (DBMat[,k]<max & DBMat[,k]>min)
       

@@ -1,4 +1,4 @@
-Auto.MV.Regress<-function( X="PCA.outliers.removed.csv", Yvar="Y.outliers.removed.csv", box.prop=1/5, wd="D:\\R_data_processing\\STUDY NAME\\", p.adjust.methods="none", heatmap=TRUE, hclust.method="complete", dist.m.method="euclidean", Yunits="Y_units", Corr.thresh=0.3, pvalue=0.01, HMDBtol=0.005, Clust.RT.tol=2, mode="negative", Clust.ppm=10, non.zero=2){
+Auto.MV.Regress<-function( X="PCA.outliers.removed.csv", Yvar="Y.outliers.removed.csv", box.prop=1/5, wd="D:\\R_data_processing\\STUDY NAME\\", p.adjust.methods="BH", heatmap=TRUE, hclust.method="complete", Yunits="Y_units", Corr.thresh=0.3, pvalue=0.05, HMDBtol=0.005, Clust.RT.tol=2, mode="negative", Clust.ppm=10, non.zero=2){
 
 require(gplots)
 require(ggplot2)
@@ -27,7 +27,7 @@ setwd(wd)
 
 ###save all parameters used in a dated .csv file for future reference###
 Parameters<-data.frame(X,Yvar,p.adjust.methods,box.plot.proportions=box.prop,
-                       hclust.method,dist.m.method,Pearson.corr.thresh=Corr.thresh,pvalue.cutoff=pvalue,
+                       hclust.method,Pearson.corr.thresh=Corr.thresh,pvalue.cutoff=pvalue,
                        Cluster.RT.tol=Clust.RT.tol,Mass.Accuracy.ClusterID=Clust.ppm,Min.pos.values.Y=round(((nrow(Y)/100)*non.zero),digits=0))
 
 date<-Sys.time()
@@ -124,12 +124,23 @@ for (k in 1:ncol(Y)){
     
   #########################################################################################################################################################
   ###subset the upper and lower classes of samples for box and whisker plot creation####
+  
+  if(sum(Yindices[,i])>=round((nrow(Y)*(box.prop)),digits=0)){
   high<-as.data.frame(Y[order(Y[,k],decreasing=TRUE)[1:round((nrow(Y)*(box.prop)),digits=0)],k])
   row.names(high)<-Yrownames[order(Y[,k],decreasing=TRUE)[1:round((nrow(Y)*(box.prop)),digits=0)]]
   colnames(high)<-"Box"
   low<-as.data.frame(Y[order(Y[,k],decreasing=FALSE)[1:round((nrow(Y)*(box.prop)),digits=0)],k])
   row.names(low)<-Yrownames[order(Y[,k],decreasing=FALSE)[1:round((nrow(Y)*(box.prop)),digits=0)]]
   colnames(low)<-"Box"
+  } else {
+    high<-as.data.frame(Y[Yindices[,i],k])
+    row.names(high)<-Yrownames[Yindices[,i]]
+    colnames(high)<-"Box"
+    low<-as.data.frame(Y[order(Y[,k],decreasing=FALSE)[1:sum(Yindices[,i])],k])
+    row.names(low)<-Yrownames[order(Y[,k],decreasing=FALSE)[1:sum(Yindices[,i])]]
+    colnames(low)<-"Box"  
+  }
+  
   high[,1]<-TRUE
   low[,1]<-FALSE
   
@@ -193,7 +204,7 @@ for (k in 1:ncol(Y)){
         annotate("text",label=Above.zero.samples,y=max(nonzero.boxplot)*1.1,x=1,size=3.5)+
         annotate("text",label=Zero.outliers,y=max(nonzero.boxplot)*1.1,x=2,size=3.5)+
         labs(title=Titlename)+
-        theme_bw(12)
+        theme_bw(20)
       
       ggsave(g,filename=paste(Titlename,".",foldername,"_BOXPLOT",".png",sep=""))
     }
@@ -278,9 +289,15 @@ if (heatmap==TRUE) {
   
   ####Create X-Y correlation heatmap#####
   if(ncol(Ycorrelated.heatmap)>1){
+
+ dist.m.method<- function(x) {
+  dist.co.x <- 1 - x
+  return(as.dist(dist.co.x))
+}
+
   pdf(paste("HM.Y_X",".pdf"))
   
-  heatY<-heatmap.2(t(Ycorrelated.heatmap), dend="column",Colv=TRUE,Rowv=FALSE, symm=FALSE,scale="none",labRow=c(colnames(Ycorrelated.heatmap)),labCol=RowLabels,margins=c(7,7),col=hmcols2,trace="none",key=TRUE,keysize=1.5,cexCol=0.25,cexRow=0.4,hclustfun=function(x) hclust(x,method=hclust.method), distfun=function(x) dist(x, method = dist.m.method))
+  heatY<-heatmap.2(t(Ycorrelated.heatmap), dend="column",Colv=TRUE,Rowv=FALSE, symm=FALSE,scale="none",labRow=c(colnames(Ycorrelated.heatmap)),labCol=RowLabels,margins=c(7,7),col=hmcols2,trace="none",key=TRUE,keysize=1.5,cexCol=0.25,cexRow=0.4,hclustfun=function(x) hclust(x,method=hclust.method))
    
   dev.off()
   
@@ -296,7 +313,7 @@ if (heatmap==TRUE) {
  
   ###create X-X correlation matrix#####
   
-  heat<-heatmap.2(as.matrix(SignCor), dend="both",Colv=TRUE, symm=TRUE,scale="none",labRow=c(RowLabels),labCol=c(RowLabels),margins=c(2,2),col=hmcols2,trace="none",key=TRUE,cexCol=0.25,cexRow=0.25,hclustfun=function(x) hclust(x,method=hclust.method), distfun=function(x) dist(x, method = dist.m.method))
+  heat<-heatmap.2(as.matrix(SignCor), dend="both",Colv=TRUE, symm=TRUE,scale="none",labRow=c(RowLabels),labCol=c(RowLabels),margins=c(2,2),col=hmcols2,trace="none",key=TRUE,cexCol=0.25,cexRow=0.25,hclustfun=function(x) hclust(x,method=hclust.method), distfun=dist.m.method)
   
   dev.off()
   
