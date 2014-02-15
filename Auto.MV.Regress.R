@@ -125,7 +125,7 @@ for (k in 1:ncol(Y)){
   #########################################################################################################################################################
   ###subset the upper and lower classes of samples for box and whisker plot creation####
   
-  if(sum(Yindices[,i])>=round((nrow(Y)*(box.prop)),digits=0)){
+  if(sum(Yindices[,k])>=round((nrow(Y)*(box.prop)),digits=0)){
   high<-as.data.frame(Y[order(Y[,k],decreasing=TRUE)[1:round((nrow(Y)*(box.prop)),digits=0)],k])
   row.names(high)<-Yrownames[order(Y[,k],decreasing=TRUE)[1:round((nrow(Y)*(box.prop)),digits=0)]]
   colnames(high)<-"Box"
@@ -133,11 +133,11 @@ for (k in 1:ncol(Y)){
   row.names(low)<-Yrownames[order(Y[,k],decreasing=FALSE)[1:round((nrow(Y)*(box.prop)),digits=0)]]
   colnames(low)<-"Box"
   } else {
-    high<-as.data.frame(Y[Yindices[,i],k])
+    high<-as.data.frame(Y[Yindices[,k],k])
     row.names(high)<-Yrownames[Yindices[,i]]
     colnames(high)<-"Box"
-    low<-as.data.frame(Y[order(Y[,k],decreasing=FALSE)[1:sum(Yindices[,i])],k])
-    row.names(low)<-Yrownames[order(Y[,k],decreasing=FALSE)[1:sum(Yindices[,i])]]
+    low<-as.data.frame(Y[order(Y[,k],decreasing=FALSE)[1:sum(Yindices[,k])],k])
+    row.names(low)<-Yrownames[order(Y[,k],decreasing=FALSE)[1:sum(Yindices[,k])]]
     colnames(low)<-"Box"  
   }
   
