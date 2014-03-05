@@ -1,7 +1,7 @@
 Auto.Install.Synth.test<-function(){
   
   ###use current working directory###
-  Parent.wd<-paste(getwd(),"\\MetMSLine.Installation\\",sep="")
+  Parent.wd<-paste(getwd(),"MetMSLine.Installation\\",sep="")
   ###source data directly from Github###
   require(devtools)
   require(httr)
