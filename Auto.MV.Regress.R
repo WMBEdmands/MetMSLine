@@ -1,4 +1,4 @@
-Auto.MV.Regress<-function( X="PCA.outliers.removed.csv", Yvar="Y.outliers.removed.csv", box.prop=1/5, wd="D:\\R_data_processing\\STUDY NAME\\", p.adjust.methods="BH", heatmap=TRUE, hclust.method="complete", Yunits="Y_units", Corr.thresh=0.3, pvalue=0.05, HMDBtol=0.005, Clust.RT.tol=2, mode="negative", Clust.ppm=10, non.zero=2){
+Auto.MV.Regress<-function( X="PCA.outliers.removed.csv", Yvar="Y.outliers.removed.csv", box.prop=1/5, wd="D:\\R_data_processing\\STUDY NAME\\", p.adjust.methods="none", heatmap=TRUE, hclust.method="complete", Yunits="Y_units", Corr.thresh=0.3, pvalue=0.05, HMDBtol=0.005, Clust.RT.tol=2, mode="negative", Clust.ppm=10, non.zero=2){
 
 require(gplots)
 require(ggplot2)
