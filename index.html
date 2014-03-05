@@ -59,16 +59,16 @@ biocLite("pcaMethods")
 <pre><code>eval(parse(file="http://bit.ly/18nUgrl"));Auto.Install.Synth.test()
 </code></pre>
 
+<h3>
+<a name="trouble-shooting-tip" class="anchor" href="#trouble-shooting-tip"><span class="octicon octicon-link"></span></a>TROUBLE SHOOTING TIP</h3>
+
+<p><strong>If MetMSLine does not install in windows right click the R/RStudio icon on the desktop-&gt;properties and add --internet2 in the Target box after .exe" (i.e. .exe" --internet2) and then click ok. This should resolve the problem.</strong></p>
+
 <p>The above command will install all the functions of MetMSLine: <em>PreProc.QC.LSC.R</em>, <em>Auto.PCA.R</em>, <em>Auto.MV.Regress</em>, <em>Auto.MS.MS.match.R</em> and <em>DBAnnotate.R</em> (<strong>folder name = MetMSLine.functions</strong>) in whichever directory in R/RStudio you are currently working in.
 To find out what your current directory in your R session is simply paste or type in the command line:</p>
 
 <pre><code>getwd()
 </code></pre>
-
-<h3>
-<a name="trouble-shooting-tip" class="anchor" href="#trouble-shooting-tip"><span class="octicon octicon-link"></span></a>TROUBLE SHOOTING TIP</h3>
-
-<p><strong>If MetMSLine does not install in windows right click the R/RStudio icon on the desktop-&gt;properties and add --internet2 in the Target box after .exe" (i.e. .exe" --internet2) and then click ok. This should resolve the problem.</strong></p>
 
 <p>The MetMSLine installation also includes automatic processing of some synthetic high resolution LC-MS data (5000 MS features, 80 samples, 20 Quality Controls) and synthetic continuous Y-variable data (10 Y-variables) with default settings.</p>
 
