@@ -1,10 +1,12 @@
-Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="negative", wd="D:\\R_data_processing\\STUDY NAME\\",  mzXML.dir="D:\\R_data_processing\\STUDY NAME\\MS_MS_mzXML\\", TICfilter=5000,Precursor.ppm=10,Frag.ppm=20,ret=5, Parent.tol=0.1, Fragment.tol=0.5){                                                  ###minIntensity = minimum MS MS fragment intensities
+Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="Negative", wd="D:\\R_data_processing\\STUDY NAME\\",  mzXML.dir="D:\\R_data_processing\\STUDY NAME\\MS_MS_mzXML\\", TICfilter=5000,Precursor.ppm=10,Frag.ppm=20,ret=5, Parent.tol=0.1, Fragment.tol=0.5){                                                  ###minIntensity = minimum MS MS fragment intensities
     ###minIntensity = minimum MS MS fragment intensities
     ##HMDB MS MS parent search tolerance. Set a broad tolerance here.
     ##mode for HMDB MS MS search                           
     ###HMDB MS MS fragment search tolerance.   
     require(readMzXmlData)
     
+
+	
     wd<-paste(wd,"Auto.MV.Regress.results\\",sep="")
     
     ###empty data frame for collating MS MS matching results
@@ -21,6 +23,16 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="neg
     
     
     setwd(mzXML.dir)
+
+
+    ###save all parameters used in a dated .csv file for future reference###
+	Parameters<-data.frame(MSfeatures,mode, working.dir=wd,MS.MS.file.dir=mzXML.dir,TICfilter,
+			Precursor.ppm,Frag.ppm,RT.tol=ret,HMDB.Parent.delta=Parent.tol,HMDB.Parent.delta=Fragment.tol)
+
+	date<-Sys.time()
+	date<-gsub("-",".",date)
+	write.csv(Parameters,paste("Parameters",substr(date,1,10),".csv",sep=" "),row.names=FALSE)
+
     ###identify all mzXML files in raw-data directory###
     files = list.files(pattern = "*.mzXML")
     Length.files<-length(files)

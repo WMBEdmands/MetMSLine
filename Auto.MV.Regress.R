@@ -134,7 +134,7 @@ for (k in 1:ncol(Y)){
   colnames(low)<-"Box"
   } else {
     high<-as.data.frame(Y[Yindices[,k],k])
-    row.names(high)<-Yrownames[Yindices[,i]]
+    row.names(high)<-Yrownames[Yindices[,k]]
     colnames(high)<-"Box"
     low<-as.data.frame(Y[order(Y[,k],decreasing=FALSE)[1:sum(Yindices[,k])],k])
     row.names(low)<-Yrownames[order(Y[,k],decreasing=FALSE)[1:sum(Yindices[,k])]]
@@ -291,7 +291,7 @@ if (heatmap==TRUE) {
   if(ncol(Ycorrelated.heatmap)>1){
 
  dist.m.method<- function(x) {
-  dist.co.x <- 1 - x
+  dist.co.x <- 1 - abs(x)
   return(as.dist(dist.co.x))
 }
 

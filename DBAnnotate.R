@@ -31,7 +31,8 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   DiSulf=Sulf*2  
   GlucSulf=Gluc+Sulf
   NAcCys=163.030318
-  Glyc=75.032029
+  Glyc=74.024753
+
   Mono_mass_conjugate<-c(Gluc,Sulf,DiGluc,DiSulf,GlucSulf,NAcCys,Glyc) #monoisotopic mass for conjugate
   Conjugate_mono_masses<-Mono_mass_conjugate[conjugatesmatch] #match mono masses to be utilised
   
