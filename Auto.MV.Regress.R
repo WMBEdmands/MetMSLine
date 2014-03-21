@@ -57,7 +57,7 @@ Yindices<-as.data.frame(Yindices[,Yabove_10]) # remove all Y-variables from Yind
 
 Y<-as.data.frame(Y[,Yabove_10])
 
-colnames(Y)<-Ycolnames
+colnames(Y)<-Ycolnames[Yabove_10]
 
 row.names(Y)<-Yrownames
 
@@ -579,7 +579,7 @@ if (heatmap==TRUE) {
   
 }
 significantmarker_data<-significantmarker_data[order(significantmarker_data[,"XCMS_EIC"]),]
-significantmarker_data<-subset(significantmarker_data,select=-c(X2))
+#significantmarker_data<-subset(significantmarker_data,select=-c(X2))
 Ycor<-Y
 
 ####split significant features into their respective subfolders and save also add column of scatterplot locations#####
