@@ -2,7 +2,6 @@ Auto.MV.Regress<-function( X="PCA.outliers.removed.csv", Yvar="Y.outliers.remove
 
 require(gplots)
 require(ggplot2)
-require(pls)
 require(sfsmisc)
 require(RColorBrewer)
 
