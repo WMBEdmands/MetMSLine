@@ -21,8 +21,10 @@ PreProc.QC.RLSC<-function(Peak.picker.output.file="XCMS_output.tsv",first.QC.nam
   
   ###save parameters used for data generation###
   Parameters<-data.frame(Peak.picker.output=Peak.picker.output.file,CCQC,QC.Interval=QCInterval,MFC.norm,smoother.span=smoother.span,QC.RSD.cutoff=RSD)
-  
-  print("Reading peak.picker.output.file",quote=F)
+ 
+  message("Reading peak.picker.output.file")#,quote=F)
+  flush.console()
+  #print("Reading peak.picker.output.file",quote=F)
   ##automatically identify file extension##
   if(substr(Peak.picker.output.file,nchar(Peak.picker.output.file)-2,nchar(Peak.picker.output.file))=="tsv"){
   X<-read.table(Peak.picker.output.file,sep="\t",header=T)
@@ -31,7 +33,8 @@ PreProc.QC.RLSC<-function(Peak.picker.output.file="XCMS_output.tsv",first.QC.nam
   } else if (substr(Peak.picker.output.file,nchar(Peak.picker.output.file)-2,nchar(Peak.picker.output.file))=="csv"){
     X<-read.csv(Peak.picker.output.file,header=T)
   }
-  print("Peak.picker.output.file read into R",quote=F)
+  message("Peak.picker.output.file read into R")#,quote=F)
+  flush.console()
   ###create PreProc.QC.RLSC results subdirectory to keep everything tidy!####
   
   dirname<-paste(study.dir,"/PreProc.QC.RLSC.results/",sep="")
@@ -60,12 +63,14 @@ columnvector<-as.numeric(last.CCQC:length(X)) #all injections numeric vector
   X.2<-X.2[,columnvector]#remove peak columns and start dataframe from last column conditioning QC
   X.2[is.na(X.2)]<-0 ##replace n/a with zero
 
-print("zero filling...",quote=F)
+message("zero filling...")#,quote=F)
+flush.console()
 
   Yzerofilled<-replace(X.2,X.2==0,XminNotzero<-min(apply(X.2, 2, function(x) min(x[x>0])))/2) #replace all zeros with half lowest prior to log transform
   X.2<-cbind(peakcolumns,Yzerofilled)#rebind columns
 
-print("zero filling completed",quote=F)
+message("...done")#,quote=F)
+flush.console()
 
   peakcolumn_no<-grep(first.QC.name,colnames(X)) #begin at last column conditioning QC
   QCIndices<- seq(peakcolumn_no,length(X.2),QCInterval)#index of QC samples
@@ -94,7 +99,8 @@ print("zero filling completed",quote=F)
   }
 
 
-print("smoothing signal...",quote=F)
+message("smoothing signal...")#,quote=F)
+flush.console()
 
 X.2[,samples]<-NA #replace sample columns with missing values
 QCs<-X.2[,QCIndices]
@@ -116,7 +122,17 @@ curve<-X.2[,samplevector]<-spline
   
 ###reinsert normalised or non-normalised samples###
 X[,(samples+(CCQC-1))]<-samples.df
-corrected<-X[,columnvector]/X.2[,samplevector]
+
+median.curve.df<-as.matrix(apply(curve,1,median))
+
+median.curve.df<-median.curve.df[,rep(1,ncol(curve))]
+  
+curve.prop<-median.curve.df/curve
+
+corrected<-X[,columnvector]*curve.prop
+
+message("...done")
+flush.console()
 
   if (sum(corrected[,1])==nrow(corrected)){
   stop("smoothing parameter f is too small 
@@ -138,7 +154,7 @@ corrected<-X[,columnvector]/X.2[,samplevector]
   ##Negative variable identification following correction
   
   negatives_mat<-data.matrix((corrected<0)*1)##identify variables with negative values following QC.LSC correction
-  NegMat_rowsums<-apply(negatives_mat,1,sum) ##take row sums 
+  NegMat_rowsums<-rowSums(negatives_mat) ##take row sums 
   
   negative_variables<-corrected[NegMat_rowsums>=1,] ##subset negative variables
   peak_neg_variables<-peakcolumns[NegMat_rowsums>=1,]
@@ -198,10 +214,14 @@ RAW_QCs<-RAW_QCs[NegMat_rowsums==0,]
   RSD_TUS_QCscorr_below_threshold<-(sqrt(var(apply(QCscorr[RSD_corr_below==1,],2,sum)))/mean(apply(QCscorr[RSD_corr_below==1,],2,sum)))*100
   
   ###Generalized Log transform###
-print("Generalized Log transformation...",quote=F)
+message("Generalized Log transformation...")#,quote=F)
+flush.console()
 
   log.corrected<-apply(positive_variables,2,function(x){log2((x+sqrt(x)^2+alpha.gLog^2)/2)}) #log transform on all samples and QCs
-  
+
+message("...done")
+flush.console()
+
   ###fold change difference %CV following smoothing create scatterplots from greatly changed signals####
   
   foldCVIndex<-((RSD_raw/RSD_corr)>=2)
@@ -228,7 +248,10 @@ print("Generalized Log transformation...",quote=F)
   
   Raw_data_RSD<-X[NegMat_rowsums==0,]
   
-  QC_Corrected<-cbind(peak_pos_variables,tests_raw,tests_corr,log.corrected)
+
+  Corrected<-cbind(peak_pos_variables,tests_raw,tests_corr,positive_variables)
+
+  Corrected.LogT<-cbind(peak_pos_variables,tests_raw,tests_corr,log.corrected)
   
   Sum_reproducible_features<-cbind(Sum_RAW_Reprodfeatures,RSD_TUS_QCs_RAW,RSD_TUS_QCs_RAW_below_threshold,Sum_Corr_Reprodfeatures,RSD_TUS_QCscorr,RSD_TUS_QCscorr_below_threshold,sumfoldCVIndex)
  
@@ -236,12 +259,14 @@ print("Generalized Log transformation...",quote=F)
   
  # Curve<-cbind(peak_pos_variables,Curve_pos_variables)
 #  write.csv (Curve,file="Curve.csv")
-  write.csv (QC_Corrected,file="QC_Corrected.csv",row.names=FALSE)
+  write.csv(Corrected,"Corrected.csv",row.names=FALSE)
+  write.csv (Corrected.LogT,file="Corrected.LogT.csv",row.names=FALSE)
   write.csv (Sum_reproducible_features,file="Sum_reproducible_features.csv",row.names=FALSE)
-  write.csv(Raw_data_RSD,"Raw_data_RSD.csv",row.names=FALSE)
+  #write.csv(Raw_data_RSD,"Raw_data_RSD.csv",row.names=FALSE)
   
 if (scatter.plots==TRUE){  
-  print("SAVING SCATTERPLOTS...",quote=F)
+  message("SAVING SCATTERPLOTS...")#,quote=F)
+  flush.console()
   
   if(sumfoldCVIndex>1){
     ####Plot univariate scatterplot smoothing####
@@ -254,13 +279,15 @@ if (scatter.plots==TRUE){
   dir.create(dirname)
   setwd(dirname)
   
-  pb<-tkProgressBar(title="Scatter plot progress bar",min=0,max=nrow(RawfoldCV),width=300)
+  pb<-txtProgressBar(min=0,max=nrow(RawfoldCV),style=3)#,width=300)#title="Scatter plot progress bar"
   
   
   for (i in 1:nrow(RawfoldCV)) { 
-    
+
     Sys.sleep(0.1)
-    setTkProgressBar(pb,i,label=paste( round(i/nrow(RawfoldCV)*100, 0),"% done"))
+   setTxtProgressBar(pb,i)
+    # setTkProgressBar(pb,i,label=paste( round(i/nrow(RawfoldCV)*100, 0),"% done"))
+    flush.console()
     
     Titlename<-Plot_names[i]
     RSD_raw_plot<-as.character(round(RSD_rawfoldCV[i],digits=2))
@@ -287,12 +314,15 @@ if (scatter.plots==TRUE){
     dev.off()    
   }
   close(pb)
+  message("...done")
+  flush.console()
  }
 }
   if(sumfoldCVIndex<2){print("smoothing parameter f too large
                               (decrease the proportion of datapoints used for signal drift correction)")}
 
-print("Pre-processing finished please examine results",quote=F)
+message("Pre-processing finished please examine results")#,quote=F)
+flush.console()
 
 }
 
