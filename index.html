@@ -37,7 +37,7 @@
 <h3>
 <a name="purpose" class="anchor" href="#purpose"><span class="octicon octicon-link"></span></a>Purpose</h3>
 
-<p>MetMSLine and associated software functions were created in the R language to attempt to achieve improved standard operating procedures and good laboratory practice for efficient and objective untargeted metabolomics analysis of large-scale (&gt;300  samples) high-resolution LC-MS datasets.</p>
+<p>MetMSLine and associated software functions were created in the R language to attempt to achieve improved standard operating procedures and good laboratory practice for efficient and objective untargeted metabolomics analysis of large-scale (e.g. &gt;300  samples) high-resolution LC-MS datasets.</p>
 
 <p>You will need to install the latest version of R (available here: <a href="http://www.r-project.org/">R.download.page</a>) and also following R installation RStudio is recommended for its user-friendly interface (available here: <a href="http://www.rstudio.com/ide/download/desktop">Rstudio</a>)</p>
 
@@ -46,7 +46,7 @@
 
 <p>-Initially install all R package dependencies by typing or pasting these lines of code into the command line of the R or RStudio console, you will only need to do this once per computer operating system:</p>
 
-<pre><code>install.packages(c("devtools","httr","zoo", "gplots", "ggplot2", "pls", "sfsmisc", "RColorBrewer", "readMzXmlData"))
+<pre><code>install.packages(c("fgui","tcltk2","zoo", "gplots", "ggplot2", "sfsmisc", "RColorBrewer", "readMzXmlData"))
 source("http://bioconductor.org/biocLite.R")
 biocLite("pcaMethods")
 </code></pre>
@@ -54,27 +54,26 @@ biocLite("pcaMethods")
 <h3>
 <a name="what-does-it-do" class="anchor" href="#what-does-it-do"><span class="octicon octicon-link"></span></a>What does it do?</h3>
 
-<p>-As long as all packages installed successfully: simply paste or type this line of code into your R/ RStudio command line and you can see for yourself:</p>
+<p>MetMSLine is compatible with any peak picking software output (e.g. XCMS, mzMine and proprietary softwares) and is available as both a user friendly graphical user interface for non R specialists and also as command line functions for seamless integration. It is possible to use MetMSLine on any operating system.</p>
 
-<pre><code>eval(parse(file="http://bit.ly/18nUgrl"));Auto.Install.Synth.test()
-</code></pre>
+<p>Simply download the .zip file in the top right corner of this page, extract and save the files within in a local directory on your computer (e.g. D:/MetMSLine).</p>
 
-<h3>
-<a name="trouble-shooting-tip" class="anchor" href="#trouble-shooting-tip"><span class="octicon octicon-link"></span></a>TROUBLE SHOOTING TIP</h3>
+<p>In order to commence the MetMSLine processing sequence with a GUI simply type the following example commands into your R or RStudio (recommended) console 
+e.g.</p>
 
-<p><strong>If MetMSLine does not install in windows right click the R/RStudio icon on the desktop-&gt;properties and add --internet2 in the Target box after .exe" (i.e. .exe" --internet2) and then click ok. This should resolve the problem.</strong></p>
+<div class="highlight highlight-r"><pre><span class="kn">source</span><span class="p">(</span><span class="s">'D:/MetMSLine/PreProc.QC.RLSC.GUI.R'</span><span class="p">)</span>
+<span class="c1">###This will start the MetMSLine GUI for pre-processing.###</span>
+</pre></div>
 
-<p>The above command will install all the functions of MetMSLine: <em>PreProc.QC.LSC.R</em>, <em>Auto.PCA.R</em>, <em>Auto.MV.Regress</em>, <em>Auto.MS.MS.match.R</em> and <em>DBAnnotate.R</em> (<strong>folder name = MetMSLine.functions</strong>) in whichever directory in R/RStudio you are currently working in.
-To find out what your current directory in your R session is simply paste or type in the command line:</p>
+<p>Following pre-processing type/paste the following commands in this sequence to continue the data processing sequence.</p>
 
-<pre><code>getwd()
-</code></pre>
+<div class="highlight highlight-r"><pre><span class="kn">source</span><span class="p">(</span><span class="s">'D:/MetMSLine/Auto.PCA.GUI.R'</span><span class="p">)</span>
+<span class="kn">source</span><span class="p">(</span><span class="s">'D:/MetMSLine/Auto.MV.Regress.GUI.R'</span><span class="p">)</span>
+<span class="kn">source</span><span class="p">(</span><span class="s">'D:/MetMSLine/Auto.MS.MS.match.GUI.R'</span><span class="p">)</span>
+<span class="kn">source</span><span class="p">(</span><span class="s">'D:/MetMSLine/DBAnnotate.GUI.R'</span><span class="p">)</span>
+</pre></div>
 
-<p>The MetMSLine installation also includes automatic processing of some synthetic high resolution LC-MS data (5000 MS features, 80 samples, 20 Quality Controls) and synthetic continuous Y-variable data (10 Y-variables) with default settings.</p>
-
-<p><em>NB. You can monitor progress by watching the new directories of results as the data is processed and the saving of all MetMSLine functions as it installs</em></p>
-
-<p><strong>The function <em>Auto.MS.MS.match.R</em> is the only function not illustrated by the synthetic dataset as the data is simulated it is not possible to match random features to real MS/MS fragmentation data.</strong></p>
+<p>The MetMSLine installation also includes synthetic high resolution LC-MS data (5000 MS features, 80 samples, 20 Quality Controls) and synthetic continuous Y-variable data (10 Y-variables) with default settings.</p>
 
 <h3>
 <a name="detailed-instructions" class="anchor" href="#detailed-instructions"><span class="octicon octicon-link"></span></a>Detailed Instructions</h3>
