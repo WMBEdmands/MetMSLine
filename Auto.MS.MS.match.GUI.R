@@ -1,4 +1,15 @@
-Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="Negative", TICfilter=5000,Precursor.ppm=10,Frag.ppm=20,ret=5, Parent.tol=0.1, Fragment.tol=0.5,wd="~/STUDY NAME/",mzXML.dir="~/STUDY NAME/MS_MS_mzXML/"){                                                  ###minIntensity = minimum MS MS fragment intensities
+require(fgui)
+require(tcltk2)
+
+ReturnVal <- tkmessageBox(title = "MS1 features (.csv file) directory location",
+                          message = "1. First select the MS1 features (.csv file) directory location you wish to match to MS2 data", icon = "info", type = "ok")
+wd<-tk_choose.dir(default = "", caption = "Select directory")
+
+ReturnVal <- tkmessageBox(title = "MS2 (.mzXML file) data directory location",
+                          message = "2. Now select the MS2 (.mzXML file) directory location", icon = "info", type = "ok")
+mzXML.dir<-tk_choose.dir(default = "", caption = "Select directory")
+
+Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="Negative", TICfilter=5000,Precursor.ppm=10,Frag.ppm=20,ret=5, Parent.tol=0.1, Fragment.tol=0.5){                                                  ###minIntensity = minimum MS MS fragment intensities
     ###minIntensity = minimum MS MS fragment intensities
     ##HMDB MS MS parent search tolerance. Set a broad tolerance here.
     ##mode for HMDB MS MS search                           
@@ -577,4 +588,18 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="Neg
     
   }
 
+guiv(Auto.MS.MS.match,
+   argText=list(MSfeatures="MS1 features table name (.csv) ? ",
+                mode="Which ionisation polarity ? ",
+                TICfilter="What is your MS2 spectra total ion current (TIC) threshold ? ",
+                Precursor.ppm="Mass accuracy tolerance for MS1 feature to MS2 precursor matching (ppm) ? ",
+                Frag.ppm="Mass accuracy tolerance for MS2 inter-fragment and neutral loss matching (ppm) ? ",
+                ret="Retention time tolerance for MS1 feature to MS2 precursor matching (in seconds) ? ",
+                Parent.tol="delta mass accuracy for HMDB MS2 precursor hyperlink generation ? ",
+                Fragment.tol="delta mass accuracy for HMDB MS2 fragments hyperlink generation ? "
+                ),
+   argOption=list(mode=c("Positive","Negative")),
+   argSlider=list(TICfilter=c(0,20000,500),Precursor.ppm=c(1,50,1),Frag.ppm=c(1,50,1),ret=c(0,50,1),Parent.tol=c(0,5,0.001),Fragment.tol=c(0,5,0.001)),
+  helps=NULL)
+  
   ###END###

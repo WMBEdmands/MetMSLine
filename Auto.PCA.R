@@ -1,4 +1,4 @@
-Auto.PCA<- function(X="QC_Corrected.csv",Yvar="Y.csv",QCInt=5,PCA.method="svd",scaling="uv",out.tol=1.2,wd="D:\\R_data_processing\\STUDY NAME\\") {
+Auto.PCA<- function(PreProc.output="Corrected.LogT.csv",Yvar="Y.csv",QCInterval=5,PCA.method="svd",scaling.type="uv",out.tol=1.2,study.dir="~/STUDY NAME/"){
   ##automatic multivariate data analysis function. Function takes QC corrected output csv files and performs PCA, automated 
   ##outlier removal based on Hotellings T2 distribution. Based on an acceptable tolerance representing a proportional expansion of the ellipse
   ##around the ellipse. Strong outliers identified by 2 rounds of PCA calculation are saved in a seperate .csv result for visual examination.
@@ -6,31 +6,43 @@ Auto.PCA<- function(X="QC_Corrected.csv",Yvar="Y.csv",QCInt=5,PCA.method="svd",s
   ##Function then performs linear regression analysis to any Y-variable where non-zero data exists for more than 10 samples, using pearson product moment correlation with p-values calculated by F-test and then corrected by Bonferroni's
   ##method, subfolders for each Y-variable are generated and results saved within. Scatterplots demonstrating the relationship between X and Y are also automatically generated.
   
-  wd<-paste(wd,"PreProc.QC.RLSC.results\\",sep="")
+  ###load package dependencies
+  require(pcaMethods)
+  ###change upper case character string to lowercase to prevent argument being recognised as function
+  PCA.method<-tolower(PCA.method)
+  
+  setwd(study.dir)
   
   ###save parameters used for data generation###
-  Parameters<-data.frame(X,Yvar,QCInt,PCA.method,scaling,out.tol)
+  Parameters<-data.frame(PreProc_output=PreProc.output,Y_data_file_name=Yvar,QC_interval=QCInterval,PCA_method=PCA.method,scaling.type=scaling.type,outlier_tolerance=out.tol)
   
-  setwd(wd)
-  
-  require(pcaMethods)
- 
+  message("Reading PreProc.QC.RLSC output file...PLEASE WAIT")#,quote=F)
+  flush.console()
   ###Load .csv files for X and Y matrices###
-  X<-as.data.frame(read.csv(X,header=T))
+  X<-as.data.frame(read.csv(PreProc.output,header=T))
   
-  X<-X[-which(X$RSD_corr_below!=1),] # subset all variables below RSD threshold
+  message("...Done")#,quote=F)
+  flush.console()
+  
+  below.RSD.thresh.indx<-which(X$RSD_corr_below!=1)
+  
+  message(paste(length(below.RSD.thresh.indx),"MS features were above the RSD % threshold and were removed"))#,quote=F)
+  flush.console()
+  
+  
+  X<-X[-below.RSD.thresh.indx,] # subset all variables below RSD threshold
   X<-X[rowSums(is.na(X))<5, ] # remove all observations with more than 5 N/A
   
   ###read in Y variables from parent directory###
-  Ydir.name<-substr(wd,1,nchar(wd)-24)
+  Ydir.name<-substr(study.dir,1,nchar(study.dir)-24)
   
   setwd(Ydir.name)
   
-  Y<-t(read.csv(Yvar,header=T,row.names=1))#dietary or Y independent variables for regression analyses
+  Y<-t(as.data.frame(read.csv(Yvar,header=T,row.names=1)))#Y independent variables for downstream stats analyses
   
   ###create Auto.PCA results sub directory to keep everything tidy####
   
-  dir.name<-paste(substr(wd,1,nchar(wd)-24),"Auto.PCA.results\\",sep="")
+  dir.name<-paste(substr(study.dir,1,nchar(study.dir)-24),"/Auto.PCA.results/",sep="")
   
   dir.create(dir.name)
  
@@ -39,7 +51,7 @@ Auto.PCA<- function(X="QC_Corrected.csv",Yvar="Y.csv",QCInt=5,PCA.method="svd",s
   date<-gsub("-",".",date)
   write.csv(Parameters,paste("Parameters",substr(date,1,10),".csv",sep=" "),row.names=FALSE)
   
-  dir<-paste(dir.name,"PCA.model.1\\",sep="")
+  dir<-paste(dir.name,"PCA.model.1/",sep="")
   ##create new folder in which to save results
   dir.create(dir)
   setwd(dir)
@@ -50,7 +62,7 @@ Auto.PCA<- function(X="QC_Corrected.csv",Yvar="Y.csv",QCInt=5,PCA.method="svd",s
   PCA.data<-X[,-XCMScolumnsIndex] # all observations in run order
   
   PCA.index<-1:ncol(PCA.data)
-  QCdummyMindex<-seq(1,length(PCA.data),QCInt) # dummy matrix of QC injection position for PCA modelling
+  QCdummyMindex<-seq(1,length(PCA.data),QCInterval) # dummy matrix of QC injection position for PCA modelling
   QCdummyM<-rep(0,ncol(PCA.data))
   QCdummyM[QCdummyMindex]<-1
   
@@ -61,7 +73,13 @@ Auto.PCA<- function(X="QC_Corrected.csv",Yvar="Y.csv",QCInt=5,PCA.method="svd",s
   #PCA.data.scaled<-prep(PCA.data, scale = c(scaling), center = TRUE, simple = TRUE, reverse = FALSE)
   tPCA.data<-t(PCA.data)
   ##PCA using probabilistic PCA method 
-  pca.result <- pca(tPCA.data, nPcs = 2, method=PCA.method,scale=scaling, centre=TRUE, cv="q2",seed=123)
+  message("Calculating 1st PCA model...PLEASE WAIT")#,quote=F)
+  flush.console()
+  
+  pca.result <- pca(tPCA.data, nPcs = 2, method=PCA.method,scale=scaling.type, centre=TRUE, cv="q2",seed=123)
+  
+  message("...Done")#,quote=F)
+  flush.console()
   
   ## Get the estimated principal axes (loadings)
   loadings <- pca.result@loadings
@@ -112,10 +130,12 @@ Auto.PCA<- function(X="QC_Corrected.csv",Yvar="Y.csv",QCInt=5,PCA.method="svd",s
   plotPcs(pca.result, type = "scores",col=QCdummyM+1,pch=19)
   dev.off()
   
+  message(paste(length(outliers),"outliers were detected in the 1st PCA model calculation and removed..."))#,quote=F)
+  flush.console()
   
   if(length(outliers)>1){
     ## name Model 1 outliers and create summary
-    dir<-paste(dir.name,"PCA.model.2\\",sep="")
+    dir<-paste(dir.name,"PCA.model.2/",sep="")
     ##create new folder in which to save results
     dir.create(dir)
     setwd(dir)
@@ -128,7 +148,15 @@ Auto.PCA<- function(X="QC_Corrected.csv",Yvar="Y.csv",QCInt=5,PCA.method="svd",s
     tPCA.data<-tPCA.data[-outliers,]
     
     QCdummyM<-QCdummyM[-outliers]
-    pca.result.2 <- pca(tPCA.data, nPcs = 2, method=PCA.method,scale=scaling, centre=TRUE, cv="q2",seed=123)
+    
+    message("Calculating 2nd PCA model...PLEASE WAIT")#,quote=F)
+    flush.console()
+    
+    pca.result.2 <- pca(tPCA.data, nPcs = 2, method=PCA.method,scale=scaling.type, centre=TRUE, cv="q2",seed=123)
+    
+    message("...Done")#,quote=F)
+    flush.console()
+    
     loadings.2 <- pca.result.2@loadings
     scores.2 <- pca.result.2@scores
     ###bind loadings to XCMS variable information
@@ -166,13 +194,15 @@ Auto.PCA<- function(X="QC_Corrected.csv",Yvar="Y.csv",QCInt=5,PCA.method="svd",s
     png("PCA_scores.2.png",width=1200,height=1200,res=275)
     plotPcs(pca.result.2, type = "scores",col=QCdummyM+1,pch=19)
     dev.off()
-          
+     
+    message(paste(length(outliers.2),"outliers were detected in the 2nd PCA model calculation and removed..."))#,quote=F)
+    flush.console()
   
   if(length(outliers.2)>1) {
     ## name Model 2 outliers and create summary
     #names(outliers.2)<-paste(rep("Model_2",length(outliers.2)),names(outliers.2),sep=" ") #names outliers
     ## name Model 1 outliers and create summary
-    dir<-paste(dir.name,"PCA.model.3\\",sep="")
+    dir<-paste(dir.name,"PCA.model.3/",sep="")
     ##create new folder in which to save results
     dir.create(dir)
     setwd(dir)
@@ -187,7 +217,15 @@ Auto.PCA<- function(X="QC_Corrected.csv",Yvar="Y.csv",QCInt=5,PCA.method="svd",s
     tPCA.data<-tPCA.data[-outliers.2,]
   
     QCdummyM<-QCdummyM[-outliers.2]
-    pca.result.3 <- pca(tPCA.data, nPcs = 2, method=PCA.method,scale=scaling, centre=TRUE, cv="q2",seed=123)
+    
+    message("Calculating 3rd PCA model...PLEASE WAIT")#,quote=F)
+    flush.console()
+    
+    pca.result.3 <- pca(tPCA.data, nPcs = 2, method=PCA.method,scale=scaling.type, centre=TRUE, cv="q2",seed=123)
+    
+    message("...Done")#,quote=F)
+    flush.console()
+    
     loadings.3 <- pca.result.3@loadings
     scores.3 <- pca.result.3@scores
     loadings.3<-cbind(XCMScolumns,loadings.3)
@@ -226,9 +264,18 @@ Auto.PCA<- function(X="QC_Corrected.csv",Yvar="Y.csv",QCInt=5,PCA.method="svd",s
     plotPcs(pca.result.3, type = "scores",col=QCdummyM+1,pch=19)
     dev.off()
     
-  
+    message(paste(length(outliers.3),"outliers were detected in the 3rd PCA model calculation..."))#,quote=F)
+    flush.console()
   
   if (length(outliers.3)>1){
+    
+    message("WARNING: after two rounds of outlier removal outliers are still detected either:
+1. Increase the outlier tolerance parameter.
+2. Try a different scaling method.
+3. Alter the smoothing span of the LOWESS function in PreProc.QC.RLSC.
+4. Check the data thoroughly for potential LC-MS acquisition problems.")#,quote=F)
+    flush.console()
+    
     ## name Model 3 outliers and create summary
     #names(outliers.3)<-paste(rep("Model_3",length(outliers.3)),names(outliers.3),sep=" ") #names outliers
     setwd(dir.name)
@@ -268,8 +315,10 @@ Auto.PCA<- function(X="QC_Corrected.csv",Yvar="Y.csv",QCInt=5,PCA.method="svd",s
  
   PCA.outliers.removed<-cbind(XCMScolumns,Samples)
   
-  write.csv(Y,"Y.outliers.removed.csv",row.names=TRUE)
+  write.csv(t(Y),"Y.outliers.removed.csv",row.names=TRUE)
   
   write.csv(PCA.outliers.removed,"PCA.outliers.removed.csv",row.names=FALSE)  
   
 }  
+
+###END###

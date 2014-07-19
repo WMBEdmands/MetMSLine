@@ -1,60 +1,66 @@
-require(fgui)
-
-
-PreProc.QC.RLSC<-function(X="XCMS_output.tsv",CCQC=10,SGroups=3,QCInt=5,MFC.norm=TRUE,f=1/5,RSD=30,a=1,scatter.plots=TRUE,wd="D:\\R_data_processing\\STUDY NAME\\",XCMS_dir="D:\\R_data_processing\\STUDY NAME\\XCMS\\") {
-# Performs QC based LOWESS curve signal correction. X-XCMS diffreport, CCQC - number of column conditioning QCs, 
-# QCInt - QC injection interval (ie. every 4th sample), f = the smoother span (proportion of points in the plot which influence the smooth at each value), larger values = more smoothness.
-# a<-1 alpha generalized log transform
-# returns matrix of original, curve values and corrected signal intensity data #  
+PreProc.QC.RLSC<-function(Peak.picker.output.file="e.g. XCMS_output.tsv, Mzmine_output.txt etc.",first.QC.name="e.g. QC_1_CCQC",CCQC=10,QCInterval=5,MFC.norm=TRUE,smoother.span=0.2,RSD=30,alpha.gLog=1,scatter.plots=TRUE,study.dir="~/STUDY NAME/",Peak.picker.output.dir="~/Peak picker output dir/") {
+  ###load package dependencies
+  require (zoo) 
   
-  setwd(XCMS_dir)
+  first.QC.name<-gsub("-",".",first.QC.name)
+  
+  setwd(Peak.picker.output.dir)
   
   ###save parameters used for data generation###
-  Parameters<-data.frame(XCMS.output=X,CCQC,SGroups,QC.Interval=QCInt,MFC.norm,smoother.span=f,QC.RSD.cutoff=RSD)
-  
+  Parameters<-data.frame(Peak.picker.output=Peak.picker.output.file,CCQC,QC.Interval=QCInterval,MFC.norm,smoother.span=smoother.span,QC.RSD.cutoff=RSD)
+ 
+  message("Reading peak.picker.output.file")#,quote=F)
+  flush.console()
+  #print("Reading peak.picker.output.file",quote=F)
   ##automatically identify file extension##
-  if(substr(X,nchar(X)-2,nchar(X))=="tsv"){
-  X<-read.table(X,sep="\t",header=T)
-  } else if (substr(X,nchar(X)-2,nchar(X))=="txt"){
-    X<-read.table(X,sep="\t",header=T)
-  } else if (substr(X,nchar(X)-2,nchar(X))=="csv"){
-    X<-read.csv(X,header=T)
+  if(substr(Peak.picker.output.file,nchar(Peak.picker.output.file)-2,nchar(Peak.picker.output.file))=="tsv"){
+  X<-read.table(Peak.picker.output.file,sep="\t",header=T)
+  } else if (substr(Peak.picker.output.file,nchar(Peak.picker.output.file)-2,nchar(Peak.picker.output.file))=="txt"){
+    X<-read.table(Peak.picker.output.file,sep="\t",header=T)
+  } else if (substr(Peak.picker.output.file,nchar(Peak.picker.output.file)-2,nchar(Peak.picker.output.file))=="csv"){
+    X<-read.csv(Peak.picker.output.file,header=T)
   }
-  
+  message("Peak.picker.output.file read into R")#,quote=F)
+  flush.console()
   ###create PreProc.QC.RLSC results subdirectory to keep everything tidy!####
   
-  dirname<-paste(wd,"PreProc.QC.RLSC.results\\",sep="")
+  dirname<-paste(study.dir,"/PreProc.QC.RLSC.results/",sep="")
   dir.create(dirname)
   setwd(dirname)
   
   date<-Sys.time()
   date<-gsub("-",".",date)
   write.csv(Parameters,paste("Parameters",substr(date,1,10),".csv",sep=" "),row.names=FALSE)
-    
-require (zoo)
-last.CCQC<-CCQC+14+SGroups
-XCMScolumn_vector<-14+SGroups
-XCMScolumnsIndex<-as.numeric(1:XCMScolumn_vector)##index of XCMS information columns
-XCMScolumns<-X[,XCMScolumnsIndex]###subset XCMS variable information columns
+  
+last.CCQC<-(grep(first.QC.name,colnames(X))+CCQC)
+#peakcolumn_no<-14+SGroups
+peakcolumnsIndex<-as.numeric(1:(grep(first.QC.name,colnames(X))-1))##index of peak information columns
 columnvector<-as.numeric(last.CCQC:length(X)) #all injections numeric vector
-  RAW_QCIndices<- seq(last.CCQC,length(X),QCInt)
+  RAW_QCIndices<- seq(last.CCQC,length(X),QCInterval)
 
 
 ####zero filling####
   
   ##Remove rows containing missing values
   X<-na.omit(X)
-  
-  X.2<-X #create X.2 matrix
-  X.2<-X.2[,columnvector]#remove XCMS columns and start dataframe from last column conditioning QC
-  X.2[is.na(X.2)]<-0 ##replace n/a with zero
-  Yzerofilled<-replace(X.2,X.2==0,XminNotzero<-min(apply(X.2, 2, function(x) min(x[x>0])))/2) #replace all zeros with half lowest prior to log transform
-  X.2<-cbind(XCMScolumns,Yzerofilled)#rebind columns
-  
+  peakcolumns<-X[,peakcolumnsIndex]###subset peak variable information columns
 
-  XCMScolumn_vector<-XCMScolumn_vector+1 #begin at last column conditioning QC
-  QCIndices<- seq(XCMScolumn_vector,length(X.2),QCInt)#index of QC samples
-  samplevector<-as.numeric(XCMScolumn_vector:length(X.2)) #all injections numeric vector in Y
+  X.2<-X #create X.2 matrix
+  X.2<-X.2[,columnvector]#remove peak columns and start dataframe from last column conditioning QC
+  X.2[is.na(X.2)]<-0 ##replace n/a with zero
+
+message("zero filling...")#,quote=F)
+flush.console()
+
+  Yzerofilled<-replace(X.2,X.2==0,XminNotzero<-min(apply(X.2, 2, function(x) min(x[x>0])))/2) #replace all zeros with half lowest prior to log transform
+  X.2<-cbind(peakcolumns,Yzerofilled)#rebind columns
+
+message("...done")#,quote=F)
+flush.console()
+
+  peakcolumn_no<-grep(first.QC.name,colnames(X)) #begin at last column conditioning QC
+  QCIndices<- seq(peakcolumn_no,length(X.2),QCInterval)#index of QC samples
+  samplevector<-as.numeric(peakcolumn_no:length(X.2)) #all injections numeric vector in Y
   samples<-samplevector[-match(QCIndices,samplevector)] # sample index
  
   samples.df<-X.2[,samples]
@@ -77,14 +83,18 @@ columnvector<-as.numeric(last.CCQC:length(X)) #all injections numeric vector
   
   samples.df<-normalize.medFC(samples.df)
   }
-  
+
+
+message("smoothing signal...")#,quote=F)
+flush.console()
+
 X.2[,samples]<-NA #replace sample columns with missing values
 QCs<-X.2[,QCIndices]
-  
+
 
 #Lowess smoothing
 
-Lowess<-apply(QCs,1,lowess,f=f) #apply Lowess smoothing on QCs, arguments can be added here
+Lowess<-apply(QCs,1,lowess,f=smoother.span) #apply Lowess smoothing on QCs, arguments can be added here
 Lowess<- data.frame(matrix(unlist(Lowess), nrow=length(X$name), byrow=T)) #coerce list result to dataframe
 Lowess<-Lowess[-c(1:length(QCs[1,]))] # remove X coordinates
 X.2[,QCIndices]<-Lowess # replace QC values with LOESS smoothed
@@ -98,7 +108,17 @@ curve<-X.2[,samplevector]<-spline
   
 ###reinsert normalised or non-normalised samples###
 X[,(samples+(CCQC-1))]<-samples.df
-corrected<-X[,columnvector]/X.2[,samplevector]
+
+median.curve.df<-as.matrix(apply(curve,1,median))
+
+median.curve.df<-median.curve.df[,rep(1,ncol(curve))]
+  
+curve.prop<-median.curve.df/curve
+
+corrected<-X[,columnvector]*curve.prop
+
+message("...done")
+flush.console()
 
   if (sum(corrected[,1])==nrow(corrected)){
   stop("smoothing parameter f is too small 
@@ -112,7 +132,7 @@ corrected<-X[,columnvector]/X.2[,samplevector]
   Yzerofilled<-Yzerofilled[QC_SD_zero!=0,]
   QCs<-QCs[QC_SD_zero!=0,]
   X<-X[QC_SD_zero!=0,]
-  XCMScolumns<-XCMScolumns[QC_SD_zero!=0,]
+  peakcolumns<-peakcolumns[QC_SD_zero!=0,]
   curve<-curve[QC_SD_zero!=0,]
   corrected<-corrected[QC_SD_zero!=0,]
   
@@ -120,12 +140,12 @@ corrected<-X[,columnvector]/X.2[,samplevector]
   ##Negative variable identification following correction
   
   negatives_mat<-data.matrix((corrected<0)*1)##identify variables with negative values following QC.LSC correction
-  NegMat_rowsums<-apply(negatives_mat,1,sum) ##take row sums 
+  NegMat_rowsums<-rowSums(negatives_mat) ##take row sums 
   
   negative_variables<-corrected[NegMat_rowsums>=1,] ##subset negative variables
-  XCMS_neg_variables<-XCMScolumns[NegMat_rowsums>=1,]
+  peak_neg_variables<-peakcolumns[NegMat_rowsums>=1,]
   positive_variables<-corrected[NegMat_rowsums==0,] ##subset positive variables for gLog transform
-  XCMS_pos_variables<-XCMScolumns[NegMat_rowsums==0,]
+  peak_pos_variables<-peakcolumns[NegMat_rowsums==0,]
   
   Raw_pos_variables<-Yzerofilled[NegMat_rowsums==0,]
   Raw_neg_variables<-Yzerofilled[NegMat_rowsums>=1,]
@@ -137,7 +157,7 @@ corrected<-X[,columnvector]/X.2[,samplevector]
 #Reproducibility calculation
 #Raw data
 
-RAW_QCIndices<- seq(last.CCQC,length(X),QCInt)
+RAW_QCIndices<- seq(last.CCQC,length(X),QCInterval)
 RAW_QCs<-X[,RAW_QCIndices]
 RAW_QCs<-RAW_QCs[NegMat_rowsums==0,]
 
@@ -159,7 +179,7 @@ RAW_QCs<-RAW_QCs[NegMat_rowsums==0,]
   
 # Reproducibility following correction
 
-  QCsCorrIndices<-seq(1,length(samplevector),QCInt) # index of QCs from corrected matrix
+  QCsCorrIndices<-seq(1,length(samplevector),QCInterval) # index of QCs from corrected matrix
   QCscorr<-corrected[,QCsCorrIndices] # create matrix of corrected QCs
   QCscorr<-QCscorr[NegMat_rowsums==0,]
   
@@ -180,9 +200,14 @@ RAW_QCs<-RAW_QCs[NegMat_rowsums==0,]
   RSD_TUS_QCscorr_below_threshold<-(sqrt(var(apply(QCscorr[RSD_corr_below==1,],2,sum)))/mean(apply(QCscorr[RSD_corr_below==1,],2,sum)))*100
   
   ###Generalized Log transform###
-  
-  log.corrected<-apply(positive_variables,2,function(x){log2((x+sqrt(x)^2+a^2)/2)}) #log transform on all samples and QCs
-  
+message("Generalized Log transformation...")#,quote=F)
+flush.console()
+
+  log.corrected<-apply(positive_variables,2,function(x){log2((x+sqrt(x)^2+alpha.gLog^2)/2)}) #log transform on all samples and QCs
+
+message("...done")
+flush.console()
+
   ###fold change difference %CV following smoothing create scatterplots from greatly changed signals####
   
   foldCVIndex<-((RSD_raw/RSD_corr)>=2)
@@ -195,7 +220,7 @@ RAW_QCs<-RAW_QCs[NegMat_rowsums==0,]
   
   QCcorrLogfoldCV<-as.data.frame(log.corrected[foldCVIndex,])
   
-  XCMSfoldCV<-as.data.frame(XCMS_pos_variables[foldCVIndex,])
+  peakfoldCV<-as.data.frame(peak_pos_variables[foldCVIndex,])
   
   CurvefoldCV<-as.data.frame(Curve_pos_variables[foldCVIndex,])
   
@@ -209,31 +234,46 @@ RAW_QCs<-RAW_QCs[NegMat_rowsums==0,]
   
   Raw_data_RSD<-X[NegMat_rowsums==0,]
   
-  QC_Corrected<-cbind(XCMS_pos_variables,tests_raw,tests_corr,log.corrected)
+
+  Corrected<-cbind(peak_pos_variables,tests_raw,tests_corr,positive_variables)
+
+  Corrected.LogT<-cbind(peak_pos_variables,tests_raw,tests_corr,log.corrected)
   
   Sum_reproducible_features<-cbind(Sum_RAW_Reprodfeatures,RSD_TUS_QCs_RAW,RSD_TUS_QCs_RAW_below_threshold,Sum_Corr_Reprodfeatures,RSD_TUS_QCscorr,RSD_TUS_QCscorr_below_threshold,sumfoldCVIndex)
  
   ###.csv file creation###
   
- # Curve<-cbind(XCMS_pos_variables,Curve_pos_variables)
+ # Curve<-cbind(peak_pos_variables,Curve_pos_variables)
 #  write.csv (Curve,file="Curve.csv")
-  write.csv (QC_Corrected,file="QC_Corrected.csv",row.names=FALSE)
+  write.csv(Corrected,"Corrected.csv",row.names=FALSE)
+  write.csv (Corrected.LogT,file="Corrected.LogT.csv",row.names=FALSE)
   write.csv (Sum_reproducible_features,file="Sum_reproducible_features.csv",row.names=FALSE)
-  write.csv(Raw_data_RSD,"Raw_data_RSD.csv",row.names=FALSE)
+  #write.csv(Raw_data_RSD,"Raw_data_RSD.csv",row.names=FALSE)
   
 if (scatter.plots==TRUE){  
+  message("SAVING SCATTERPLOTS...")#,quote=F)
+  flush.console()
+  
   if(sumfoldCVIndex>1){
     ####Plot univariate scatterplot smoothing####
-  QCdummyMindex<-seq(1,length(RawfoldCV),QCInt) # dummy matrix of QC injection position for PCA modelling
+  QCdummyMindex<-seq(1,length(RawfoldCV),QCInterval) # dummy matrix of QC injection position for PCA modelling
   QCdummyM<-rep(1,ncol(RawfoldCV))
   QCdummyM[QCdummyMindex]<-2
-  Plot_names<-as.character(XCMSfoldCV[,2])
+  Plot_names<-as.character(paste("M",round(peakfoldCV[,2],digits=4),"T",round(peakfoldCV[,3],digits=1),sep=""))
   
   dirname<-paste(dirname,"QC.LSC.Scatterplots")
   dir.create(dirname)
   setwd(dirname)
   
+  pb<-txtProgressBar(min=0,max=nrow(RawfoldCV),style=3)#,width=300)#title="Scatter plot progress bar"
+  
+  
   for (i in 1:nrow(RawfoldCV)) { 
+
+    Sys.sleep(0.1)
+   setTxtProgressBar(pb,i)
+    # setTkProgressBar(pb,i,label=paste( round(i/nrow(RawfoldCV)*100, 0),"% done"))
+    flush.console()
     
     Titlename<-Plot_names[i]
     RSD_raw_plot<-as.character(round(RSD_rawfoldCV[i],digits=2))
@@ -255,17 +295,21 @@ if (scatter.plots==TRUE){
    
     png(paste(Titlename,"CORR",".png"),width=1200,height=1200,res=275)
    
-    plot(AQ_order,QCcorrfoldCV[i,], main=paste("QC.LSC",Titlename,"Corrected"),sub=paste("CV%",RSD_corr_plot,"(smooth.span=",as.character(round(f,digits=2)),")"), xlab="Acquisition_order", ylab="Corrected_signal",pch=19,col=c("black","red")[QCdummyM])
+    plot(AQ_order,QCcorrfoldCV[i,], main=paste("QC.LSC",Titlename,"Corrected"),sub=paste("CV%",RSD_corr_plot,"(smooth.span=",as.character(round(smoother.span,digits=2)),")"), xlab="Acquisition_order", ylab="Corrected_signal",pch=19,col=c("black","red")[QCdummyM])
         
     dev.off()    
   }
+  close(pb)
+  message("...done")
+  flush.console()
  }
 }
   if(sumfoldCVIndex<2){print("smoothing parameter f too large
                               (decrease the proportion of datapoints used for signal drift correction)")}
-  
-}
 
-guiv(PreProc.QC.RLSC,argOption=list(MFC.norm=c("TRUE","FALSE"),scatter.plots=c("TRUE","FALSE")))
+message("Pre-processing finished please examine results")#,quote=F)
+flush.console()
+
+}
 
 ###END###

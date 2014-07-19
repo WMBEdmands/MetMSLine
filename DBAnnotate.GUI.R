@@ -1,9 +1,27 @@
-DBAnnotate<-function(X="Coffee_24hrDR_DM_results.csv",database="coffee_FooDB_filtered.csv",mode="positive",conjugates=c("Gluc","Sulf","DiGluc","DiSulf","GlucSulf","NAcCys","Glyc"),MassAcc=10,wd="Z:\\Raw_data\\EPIC_POS_Ur_n481_04_02_14\\Auto.MV.Discriminant.results\\24hrDR\\Coffee_24hrDR_DM\\",unknowns.dir="Z:\\Raw_data\\EPIC_POS_Ur_n481_04_02_14\\Auto.MV.Discriminant.results\\24hrDR\\Coffee_24hrDR_DM\\"){
+require(fgui)
+require(tcltk2)
+
+ReturnVal <- tkmessageBox(title = "Study parent/top directory location",
+                          message = "1. First select the Study parent/top directory location where the Database table (.csv file) should be located", icon = "info", type = "ok")
+wd<-tk_choose.dir(default = "", caption = "Select directory")
+
+ReturnVal <- tkmessageBox(title = "Directory of MS1 features table (.csv file)",
+                          message = "2. Now select the Directory containing the MS1 features table (.csv file) you wish to annotate", icon = "info", type = "ok")
+unknowns.dir<-tk_choose.dir(default = "", caption = "Select directory")
+
+DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.csv",mode="negative",conjugates="NO",MassAcc=10){
   # input XCMS diff report and tentative metabolite list with monoisotopic masses, also require
   # ionisation mode, anticipated acceptable mass accuracy (dependent on mass spectrometer performance) and retention time window for adduct determination returns txt file in working
   setwd(unknowns.dir)
   
+  message("Reading MS1 feature table...PLEASE WAIT")#,quote=F)
+  flush.console()
+  
   sample<-read.csv(X,header=T)
+  
+  message("...Done")#,quote=F)
+  flush.console()
+  
   #sample<-sample[,-1]
   setwd(wd)
   MetaboliteData<-data.frame(read.csv(database,header=T))
@@ -13,10 +31,12 @@ DBAnnotate<-function(X="Coffee_24hrDR_DM_results.csv",database="coffee_FooDB_fil
    
   ParentIDno<-seq(1,length(MetaboliteData[,1]),1) #Parent unique ID number
   MetaboliteData<-cbind(ParentIDno,MetaboliteData) #Parent ID number concatenated before conjugate and adduct calculation
-  
+
+  if (conjugates=="YES")
+  {
+  conjugates=c("Gluc","Sulf","DiGluc","DiSulf","GlucSulf","NAcCys","Glyc")
   conjugatesID<-c("Gluc","Sulf","DiGluc","DiSulf","GlucSulf","NAcCys","Glyc") #all conjugates more need to be added here when more conjugates are considered
   conjugatesmatch<-as.numeric(which(conjugatesID%in%conjugates)) # matches user input conjugates with complete ID vector
-  
   
   #Phase 2 conjugation table creation:: according to the character vector conjugates provided in the function.
   Conjugate_name_label<-c("_glucuronide","_sulfate","_diglucuronide","_diSulfate","_glucuronidesulfate","_Nacetylcysteine","_Glycine")
@@ -31,7 +51,8 @@ DBAnnotate<-function(X="Coffee_24hrDR_DM_results.csv",database="coffee_FooDB_fil
   DiSulf=Sulf*2  
   GlucSulf=Gluc+Sulf
   NAcCys=163.030318
-  Glyc=75.032029
+  Glyc=74.024753
+
   Mono_mass_conjugate<-c(Gluc,Sulf,DiGluc,DiSulf,GlucSulf,NAcCys,Glyc) #monoisotopic mass for conjugate
   Conjugate_mono_masses<-Mono_mass_conjugate[conjugatesmatch] #match mono masses to be utilised
   
@@ -48,15 +69,32 @@ DBAnnotate<-function(X="Coffee_24hrDR_DM_results.csv",database="coffee_FooDB_fil
   ConjugateMass<-as.numeric(ConjugateMatrix[,3])#add conjugate masses
   ConjugateMass<-ConjugateMass+ConjugateMultVector
   ConjugateMatrix[,3]<-ConjugateMass
-  
   MetaboliteData<-rbind(MetaboliteData,ConjugateMatrix) # row bind conjugate calc with original matrix
+  
   MetabIDno<-seq(1,length(MetaboliteData[,1]),1) # sequence for unique metabolite ID
   MetaboliteData<-cbind(MetabIDno,Conjugate_type,MetaboliteData)# concat unique ID number
+  
   colnames(MetaboliteData)[5]<-"Monoisotopic_mass"
   
   MetaboliteData<-aggregate.data.frame(MetaboliteData[-6],by=list(MetaboliteData$Monoisotopic_mass),paste,collapse=";")
   
   colnames(MetaboliteData)[1]<-"Monoisotopic_mass"
+  
+  
+  } else if (conjugates=="NO"){
+    ParentCharVector<-rep("Parent",each=length(ParentIDno)) # Parent names
+    MetabIDno<-seq(1,length(MetaboliteData[,1]),1) # sequence for unique metabolite ID
+    MetaboliteData<-cbind(MetabIDno,ParentCharVector,MetaboliteData)# concat unique ID number
+  
+    colnames(MetaboliteData)[2]<-"Conjugate_type"
+        
+    colnames(MetaboliteData)[5]<-"Monoisotopic_mass"
+    
+    MetaboliteData<-aggregate.data.frame(MetaboliteData[-6],by=list(MetaboliteData$Monoisotopic_mass),paste,collapse=";")
+    
+    colnames(MetaboliteData)[1]<-"Monoisotopic_mass"
+  }
+  
   
   # calculation of ESI adducts commonly found in negative and positive modes and generation of the search fields
     
@@ -65,12 +103,31 @@ DBAnnotate<-function(X="Coffee_24hrDR_DM_results.csv",database="coffee_FooDB_fil
       
     Monomass<-as.numeric(MetaboliteData[,1])
     M_H=c(Monomass+1.007276)  
-    
+    M_3H  =c(Monomass/3 +1.007276)  
+    M_2H_Na =c(Monomass/3 + 8.334590 )  
+    M_H_2Na =c(Monomass/3 +15.7661904)	
+    M_3Na =c(Monomass/3 +22.989218)	
+    M_2H=c(Monomass/2 +1.007276)	
+    M_H_NH4=c(Monomass/2 +9.520550)	
+    M_H_Na=c(Monomass/2 +11.998247)	
+    M_H_K=c(Monomass/2 +19.985217)	
+    M_2Na=c(Monomass/2 +22.989218)	
+    M_NH4=c(Monomass +18.033823)
+    M_Na=c(Monomass +22.989218)	
+    M_CH3OH_H=c(Monomass +33.033489)
+    M_K=c(Monomass +38.963158)	
+    M_2Na_H=c(Monomass +44.971160)
+    M_2K_H=c(Monomass +76.919040)	
+    M2_H=c(2*Monomass +1.007276)	
+    M2_NH4=c(2*Monomass +83.060373)	
+    M2_Na=c(2*Monomass +22.989218)	
+    M2_3H2O_2H=c(2*Monomass +28.02312)	
+    M2_K=c(2*Monomass +38.963158)	
   
-    DB<-data.frame(MetaboliteData, M_H=M_H)
+    DB<-data.frame(MetaboliteData, M_H=M_H,  M_3H  =M_3H  ,  M_2H_Na =M_2H_Na ,	M_H_2Na =M_H_2Na ,	M_3Na =M_3Na ,	M_2H=M_2H,	M_H_NH4=M_H_NH4,	M_H_Na=M_H_Na,	M_H_K=M_H_K,	M_2Na=M_2Na,	M_NH4=M_NH4,	M_Na=M_Na,	M_CH3OH_H=M_CH3OH_H,	M_K=M_K,	M_2Na_H=M_2Na_H,	M_2K_H=M_2K_H,	M2_H=M2_H,	M2_NH4=M2_NH4,	M2_Na=M2_Na,	M2_3H2O_2H=M2_3H2O_2H,	M2_K=M2_K)
     
      
-    A<-1 #number of adduct columns
+    A<-21 #number of adduct columns
     B<-addColumns+6 #first adduct column for matrix subsetting
     C<-A+addColumns+5 #last column of new dataframe (4 =input DB file original database ID, unique identifier, name and parent mass)
     
@@ -80,11 +137,22 @@ DBAnnotate<-function(X="Coffee_24hrDR_DM_results.csv",database="coffee_FooDB_fil
     
     Monomass<-as.numeric(MetaboliteData[,1])
     M_H=c(Monomass-1.007276)  
-       
-       
-    DB<-data.frame(MetaboliteData,M_H=M_H)
+    M_H2O_H=c(Monomass- 19.01839)  
+    M_FA_H=c(Monomass + 44.998201 )	
+    M_Na_2H=c(Monomass + 20.974666 )	
+    M_K_2H=c(Monomass + 36.948606 )	
+    M_Hac_H =c(Monomass + 59.013851 )	
+    M2_FA_H=c(2*Monomass + 44.998201 )	
+    M_2H=c(Monomass/2 - 1.007276 )	
+    M_3H=c(Monomass/3 - 1.007276)	
+    M2_H=c(2*Monomass - 1.007276 )	
+    M3_H=c(3*Monomass - 1.007276 )	
+    M2_Hac_H =c(2*Monomass + 59.013851 )
     
-    A<-1 #number of adduct columns
+       
+    DB<-data.frame(MetaboliteData,M_H=M_H,  M_H2O_H=M_H2O_H,  M_FA_H=M_FA_H,  M_Na_2H=M_Na_2H,	M_K_2H=M_K_2H,	M_Hac_H =M_Hac_H ,	M2_FA_H=M2_FA_H,	M_2H=M_2H,	M_3H=M_3H,	M2_H=M2_H,	M3_H=M3_H,	M2_Hac_H =M2_Hac_H)
+    
+    A<-12 #number of adduct columns
     B<-addColumns+6 #first adduct column for matrix subsetting
     C<-A+addColumns+5 #last column of new dataframe (4 =input DB file original database ID, unique identifier, name and parent mass)
   
@@ -96,7 +164,7 @@ DBAnnotate<-function(X="Coffee_24hrDR_DM_results.csv",database="coffee_FooDB_fil
   ################################################################################################################################
   DBMat <- as.matrix(DB[,B:C])
     
-  ions <-sample[,"mzmed"] 
+  ions <-sample[,2] 
   
   names <- as.character(DB[,5]) #compound names
   ParentIDno<-as.character(DB[,4]) #Parent ID number
@@ -104,15 +172,25 @@ DBAnnotate<-function(X="Coffee_24hrDR_DM_results.csv",database="coffee_FooDB_fil
   
   adductnames<-colnames(DB)[B:C] #adduct names
   
-  EICnames <- sample[,"XCMS_EIC"] #return EIC numbers from Diff Report
-  medRET<-sample[,"rtmed"] #return median retention time
+  EICnames <- sample[,1] #return EIC numbers from Diff Report
+  medRET<-sample[,3] #return median retention time
  
+  message(paste("matching",nrow(sample),"MS1 features to database entries...PLEASE WAIT"))
+  flush.console()
+  
+  pb<-txtProgressBar(min=0,max=length(ions),style=3)#,width=300)#title="Scatter plot progress bar"
   
   results <- data.frame() #empty dataframe for DB search results
   
   for(i in 1:length(ions)){
-    max = ions[i]+0.1
-    min = ions[i]-0.1
+  
+    Sys.sleep(0.1)
+    setTxtProgressBar(pb,i)
+    # setTkProgressBar(pb,i,label=paste( round(i/nrow(RawfoldCV)*100, 0),"% done"))
+    flush.console()
+        
+    max = ions[i]+((MassAcc/1000000)*ions[i])
+    min = ions[i]-((MassAcc/1000000)*ions[i])
     for (k in 1:A) {
       index <- which (DBMat[,k]<max & DBMat[,k]>min)
       
@@ -130,13 +208,15 @@ DBAnnotate<-function(X="Coffee_24hrDR_DM_results.csv",database="coffee_FooDB_fil
     }
   }
   
+  
+  message("...Done")
+  flush.console()
+    
   if(nrow(results)>1){
     
-    r.df <- as.data.frame(results)
-  
-  
-  
-  r.dfcolnames<-c("XCMS_EIC","XCMSmzmed","medRT","adducts","MetabIDno","Parent_no","tent_assignment","ExpMass")
+  r.df <- as.data.frame(results)
+    
+  r.dfcolnames<-c("MS1_feature_ID","m.z","medRT","adducts","MetabIDno","Parent_no","tent_assignment","ExpMass")
 
   colnames(r.df)<-r.dfcolnames 
    
@@ -150,10 +230,10 @@ DBAnnotate<-function(X="Coffee_24hrDR_DM_results.csv",database="coffee_FooDB_fil
   
   
   
-  DeltaMass<-round(as.numeric(Metab_merge[,"XCMSmzmed"])-as.numeric(Metab_merge[,"ExpMass"]),digits=4)
+  DeltaMass<-round(as.numeric(Metab_merge[,"m.z"])-as.numeric(Metab_merge[,"ExpMass"]),digits=4)
   
   
-  ppm<-round((DeltaMass/as.numeric(Metab_merge[,"XCMSmzmed"]))*1000000,digits=2)
+  ppm<-round((DeltaMass/as.numeric(Metab_merge[,"m.z"]))*1000000,digits=2)
   
   ppm<-ifelse(ppm<0,ppm*-1,ppm)#change negative ppm to positive
   
@@ -171,9 +251,9 @@ DBAnnotate<-function(X="Coffee_24hrDR_DM_results.csv",database="coffee_FooDB_fil
   
   XCMSaligned<-XCMSaligned[,-c(5,6,7)]
   
-  colnames(XCMSaligned)[1]<-"XCMS_EIC";colnames(XCMSaligned)[2]<-"XCMSmzmed";colnames(XCMSaligned)[3]<-"medRT"
+  colnames(XCMSaligned)[1]<-"MS1_feature_ID";colnames(XCMSaligned)[2]<-"m.z";colnames(XCMSaligned)[3]<-"medRT"
   
-  XCMSindex_belowdelta<-match(XCMSaligned[,"XCMS_EIC"],sample[,"XCMS_EIC"]) # sample index for results below delta
+  XCMSindex_belowdelta<-match(XCMSaligned[,"MS1_feature_ID"],sample[,"MS1_feature_ID"]) # sample index for results below delta
   
   XCMSaligned<-cbind(XCMSaligned,sample[XCMSindex_belowdelta,])# extract rows from XCMS data below delta and create dataframe (much wider search than below ppm)
   
@@ -187,14 +267,28 @@ DBAnnotate<-function(X="Coffee_24hrDR_DM_results.csv",database="coffee_FooDB_fil
   
   
   }else if (ncol(XCMSaligned)<=1){
-    print("No Matches Below ppm value")
+    message(paste("No Matches Below",MassAcc,"ppm mass accuracy"))
+    flush.console()
   } 
   
   } else if (nrow(results)<1){
-    print("No Matches Below delta 0.01 mass difference")
-    
+    message(paste("No Matches Below",MassAcc,"ppm mass accuracy"))
+    flush.console()
    } 
 
 }
+
+
+guiv(DBAnnotate,
+     argText=list(X="MS1 features table name for monoisotopic mass matching (.csv file) ? ",
+                  database="Monoisotopic masses table (NB. Must have metabolite name in 1st column 
+and monoisotopic mass in 2nd column and further info in 3rd to last) ? ",
+                  mode="Which ionisation polarity ? ",
+                  conjugates="Would you like to include common urinary Phase II conjugates ? ",
+                  MassAcc="Mass accuracy tolerance for DB to MS feature matching (in ppm) ? "),
+     argOption=list(mode=c("positive","negative"),conjugates=c("NO","YES")),
+     argSlider=list(MassAcc=c(0,50,1)),
+     helps=NULL)
+
 
 ###END###

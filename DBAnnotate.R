@@ -1,9 +1,16 @@
-DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.csv",mode="negative",conjugates=c("Gluc","Sulf","DiGluc","DiSulf","GlucSulf","NAcCys","Glyc"),MassAcc=10,wd="D:\\R_data_processing\\STUDY NAME\\",unknowns.dir="D:\\R_data_processing\\STUDY NAME\\Auto.MV.Regress.results\\"){
+DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.csv",mode="negative",conjugates="NO",MassAcc=10,unknowns.dir="~/STUDY NAME/",wd="~/STUDY NAME/"){
   # input XCMS diff report and tentative metabolite list with monoisotopic masses, also require
   # ionisation mode, anticipated acceptable mass accuracy (dependent on mass spectrometer performance) and retention time window for adduct determination returns txt file in working
   setwd(unknowns.dir)
   
+  message("Reading MS1 feature table...PLEASE WAIT")#,quote=F)
+  flush.console()
+  
   sample<-read.csv(X,header=T)
+  
+  message("...Done")#,quote=F)
+  flush.console()
+  
   #sample<-sample[,-1]
   setwd(wd)
   MetaboliteData<-data.frame(read.csv(database,header=T))
@@ -13,10 +20,12 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
    
   ParentIDno<-seq(1,length(MetaboliteData[,1]),1) #Parent unique ID number
   MetaboliteData<-cbind(ParentIDno,MetaboliteData) #Parent ID number concatenated before conjugate and adduct calculation
-  
+
+  if (conjugates=="YES")
+  {
+  conjugates=c("Gluc","Sulf","DiGluc","DiSulf","GlucSulf","NAcCys","Glyc")
   conjugatesID<-c("Gluc","Sulf","DiGluc","DiSulf","GlucSulf","NAcCys","Glyc") #all conjugates more need to be added here when more conjugates are considered
   conjugatesmatch<-as.numeric(which(conjugatesID%in%conjugates)) # matches user input conjugates with complete ID vector
-  
   
   #Phase 2 conjugation table creation:: according to the character vector conjugates provided in the function.
   Conjugate_name_label<-c("_glucuronide","_sulfate","_diglucuronide","_diSulfate","_glucuronidesulfate","_Nacetylcysteine","_Glycine")
@@ -49,15 +58,32 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   ConjugateMass<-as.numeric(ConjugateMatrix[,3])#add conjugate masses
   ConjugateMass<-ConjugateMass+ConjugateMultVector
   ConjugateMatrix[,3]<-ConjugateMass
-  
   MetaboliteData<-rbind(MetaboliteData,ConjugateMatrix) # row bind conjugate calc with original matrix
+  
   MetabIDno<-seq(1,length(MetaboliteData[,1]),1) # sequence for unique metabolite ID
   MetaboliteData<-cbind(MetabIDno,Conjugate_type,MetaboliteData)# concat unique ID number
+  
   colnames(MetaboliteData)[5]<-"Monoisotopic_mass"
   
   MetaboliteData<-aggregate.data.frame(MetaboliteData[-6],by=list(MetaboliteData$Monoisotopic_mass),paste,collapse=";")
   
   colnames(MetaboliteData)[1]<-"Monoisotopic_mass"
+  
+  
+  } else if (conjugates=="NO"){
+    ParentCharVector<-rep("Parent",each=length(ParentIDno)) # Parent names
+    MetabIDno<-seq(1,length(MetaboliteData[,1]),1) # sequence for unique metabolite ID
+    MetaboliteData<-cbind(MetabIDno,ParentCharVector,MetaboliteData)# concat unique ID number
+  
+    colnames(MetaboliteData)[2]<-"Conjugate_type"
+        
+    colnames(MetaboliteData)[5]<-"Monoisotopic_mass"
+    
+    MetaboliteData<-aggregate.data.frame(MetaboliteData[-6],by=list(MetaboliteData$Monoisotopic_mass),paste,collapse=";")
+    
+    colnames(MetaboliteData)[1]<-"Monoisotopic_mass"
+  }
+  
   
   # calculation of ESI adducts commonly found in negative and positive modes and generation of the search fields
     
@@ -127,7 +153,7 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   ################################################################################################################################
   DBMat <- as.matrix(DB[,B:C])
     
-  ions <-sample[,"mzmed"] 
+  ions <-sample[,2] 
   
   names <- as.character(DB[,5]) #compound names
   ParentIDno<-as.character(DB[,4]) #Parent ID number
@@ -135,15 +161,25 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   
   adductnames<-colnames(DB)[B:C] #adduct names
   
-  EICnames <- sample[,"XCMS_EIC"] #return EIC numbers from Diff Report
-  medRET<-sample[,"rtmed"] #return median retention time
+  EICnames <- sample[,1] #return EIC numbers from Diff Report
+  medRET<-sample[,3] #return median retention time
  
+  message(paste("matching",nrow(sample),"MS1 features to database entries...PLEASE WAIT"))
+  flush.console()
+  
+  pb<-txtProgressBar(min=0,max=length(ions),style=3)#,width=300)#title="Scatter plot progress bar"
   
   results <- data.frame() #empty dataframe for DB search results
   
   for(i in 1:length(ions)){
-    max = ions[i]+0.1
-    min = ions[i]-0.1
+  
+    Sys.sleep(0.1)
+    setTxtProgressBar(pb,i)
+    # setTkProgressBar(pb,i,label=paste( round(i/nrow(RawfoldCV)*100, 0),"% done"))
+    flush.console()
+        
+    max = ions[i]+((MassAcc/1000000)*ions[i])
+    min = ions[i]-((MassAcc/1000000)*ions[i])
     for (k in 1:A) {
       index <- which (DBMat[,k]<max & DBMat[,k]>min)
       
@@ -161,13 +197,15 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
     }
   }
   
+  
+  message("...Done")
+  flush.console()
+    
   if(nrow(results)>1){
     
-    r.df <- as.data.frame(results)
-  
-  
-  
-  r.dfcolnames<-c("XCMS_EIC","XCMSmzmed","medRT","adducts","MetabIDno","Parent_no","tent_assignment","ExpMass")
+  r.df <- as.data.frame(results)
+    
+  r.dfcolnames<-c("MS1_feature_ID","m.z","medRT","adducts","MetabIDno","Parent_no","tent_assignment","ExpMass")
 
   colnames(r.df)<-r.dfcolnames 
    
@@ -181,10 +219,10 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   
   
   
-  DeltaMass<-round(as.numeric(Metab_merge[,"XCMSmzmed"])-as.numeric(Metab_merge[,"ExpMass"]),digits=4)
+  DeltaMass<-round(as.numeric(Metab_merge[,"m.z"])-as.numeric(Metab_merge[,"ExpMass"]),digits=4)
   
   
-  ppm<-round((DeltaMass/as.numeric(Metab_merge[,"XCMSmzmed"]))*1000000,digits=2)
+  ppm<-round((DeltaMass/as.numeric(Metab_merge[,"m.z"]))*1000000,digits=2)
   
   ppm<-ifelse(ppm<0,ppm*-1,ppm)#change negative ppm to positive
   
@@ -202,9 +240,9 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   
   XCMSaligned<-XCMSaligned[,-c(5,6,7)]
   
-  colnames(XCMSaligned)[1]<-"XCMS_EIC";colnames(XCMSaligned)[2]<-"XCMSmzmed";colnames(XCMSaligned)[3]<-"medRT"
+  colnames(XCMSaligned)[1]<-"MS1_feature_ID";colnames(XCMSaligned)[2]<-"m.z";colnames(XCMSaligned)[3]<-"medRT"
   
-  XCMSindex_belowdelta<-match(XCMSaligned[,"XCMS_EIC"],sample[,"XCMS_EIC"]) # sample index for results below delta
+  XCMSindex_belowdelta<-match(XCMSaligned[,"MS1_feature_ID"],sample[,"MS1_feature_ID"]) # sample index for results below delta
   
   XCMSaligned<-cbind(XCMSaligned,sample[XCMSindex_belowdelta,])# extract rows from XCMS data below delta and create dataframe (much wider search than below ppm)
   
@@ -218,14 +256,14 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   
   
   }else if (ncol(XCMSaligned)<=1){
-    print("No Matches Below ppm value")
+    message(paste("No Matches Below",MassAcc,"ppm mass accuracy"))
+    flush.console()
   } 
   
   } else if (nrow(results)<1){
-    print("No Matches Below delta 0.01 mass difference")
-    
+    message(paste("No Matches Below",MassAcc,"ppm mass accuracy"))
+    flush.console()
    } 
 
 }
-
 ###END###

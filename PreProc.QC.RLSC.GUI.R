@@ -2,6 +2,23 @@
 require(fgui)
 require(tcltk2)
 
+
+###Initial message and  checklist###
+tkmessageBox(message = "You are commencing MetMSLine data processing.
+MetMSLine is capable of operating with any peak-picking software output (.txt, .csv or .tsv format), however the following checklist must be STRICTLY adhered before commencing:
+               
+1. The 1st peak-picker output table column must be the EIC number or unique peak/feature identifier.
+
+2. The 2nd peak-picker output table column must be the peak apex or median/average m/z value for the variable.
+               
+3. The 3rd peak-picker output table column must be the peak apex or median/average Retention time value for the variable.
+
+4. Retention times must be in seconds and not minutes.
+
+5. All of the sample intensity/observation columns follow after the MS variable information columns.
+               
+6. Most importantly the sample columns MUST be in acquisition order with the column conditioning QCs and intervally injected QCs in the correct positions." )
+
 ReturnVal <- tkmessageBox(title = "study parent directory",
                           message = "1. First select your study parent directory", icon = "info", type = "ok")
 study.dir<-tk_choose.dir(default = "", caption = "Select directory")
@@ -12,9 +29,10 @@ ReturnVal <- tkmessageBox(title = "Peak-picker output directory",
 Peak.picker.output.dir<-tk_choose.dir(default = "", caption = "Select directory")
 
 
-PreProc.QC.RLSC<-function(Peak.picker.output.file="XCMS_output.tsv",first.QC.name="QC_1_CCQC",CCQC=10,QCInterval=5,MFC.norm=TRUE,smoother.span=0.2,RSD=30,alpha.gLog=1,scatter.plots=TRUE) {
-
- 
+PreProc.QC.RLSC<-function(Peak.picker.output.file="e.g. XCMS_output.tsv, Mzmine_output.txt etc.",first.QC.name="e.g. QC_1_CCQC",CCQC=10,QCInterval=5,MFC.norm=TRUE,smoother.span=0.2,RSD=30,alpha.gLog=1,scatter.plots=TRUE) {
+  ###load package dependencies
+  require (zoo) 
+  
   first.QC.name<-gsub("-",".",first.QC.name)
   
   setwd(Peak.picker.output.dir)
@@ -44,9 +62,8 @@ PreProc.QC.RLSC<-function(Peak.picker.output.file="XCMS_output.tsv",first.QC.nam
   date<-Sys.time()
   date<-gsub("-",".",date)
   write.csv(Parameters,paste("Parameters",substr(date,1,10),".csv",sep=" "),row.names=FALSE)
-    
-require (zoo)
-last.CCQC<-(grep(first.QC.name,colnames(X))+CCQC)-1
+  
+last.CCQC<-(grep(first.QC.name,colnames(X))+CCQC)
 #peakcolumn_no<-14+SGroups
 peakcolumnsIndex<-as.numeric(1:(grep(first.QC.name,colnames(X))-1))##index of peak information columns
 columnvector<-as.numeric(last.CCQC:length(X)) #all injections numeric vector
@@ -273,7 +290,7 @@ if (scatter.plots==TRUE){
   QCdummyMindex<-seq(1,length(RawfoldCV),QCInterval) # dummy matrix of QC injection position for PCA modelling
   QCdummyM<-rep(1,ncol(RawfoldCV))
   QCdummyM[QCdummyMindex]<-2
-  Plot_names<-as.character(peakfoldCV[,2])
+  Plot_names<-as.character(paste("M",round(peakfoldCV[,2],digits=4),"T",round(peakfoldCV[,3],digits=1),sep=""))
   
   dirname<-paste(dirname,"QC.LSC.Scatterplots")
   dir.create(dirname)
@@ -326,7 +343,18 @@ flush.console()
 
 }
 
-guiv(PreProc.QC.RLSC,argOption=list(MFC.norm=c("TRUE","FALSE"),scatter.plots=c("TRUE","FALSE")),helps=NULL)#,helpsFunc="PreProc.QC.RLSC")#argSlider=list(RSD=c("10","20","30")))
-
-
+guiv(PreProc.QC.RLSC,
+     argText=list(MFC.norm=c("Median Fold change normalisation ? "),
+                  Peak.picker.output.file=c("Peak-picking software output table (.csv, .txt or .tsv) ? "),
+                  first.QC.name=c("What is the precise name of your first column conditioning QC ? "),
+                  CCQC=c("Number of Column Conditioning QC samples at the beginning of acquisition ?"),
+                  QCInterval=c("Quality control injection interval ? "),
+                  smoother.span=c("Smoother span for LOWESS signal attenuation smoothing ? "),
+                  RSD=c("Relative Standard Deviation cut-off for pooled QC signal filtration ? "),
+                  alpha.gLog=c("alpha value for generalized Log transformation ? "),
+                  scatter.plots=c("Output Scatter plots showing effect of LOWESS smoothing ? ")),
+    argOption=list(MFC.norm=c("FALSE","TRUE"),scatter.plots=c("TRUE","FALSE")),
+    argSlider=list(CCQC=c(0,30,1),QCInterval=c(1,40,1),smoother.span=c(0.01,1,0.01),RSD=c(0,50,1),
+                   alpha.gLog=c(0.1,3,0.1)),helps=NULL)
+   
 ###END###

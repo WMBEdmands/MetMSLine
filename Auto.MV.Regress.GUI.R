@@ -1,4 +1,13 @@
-Auto.MV.Regress<-function( X="PCA.outliers.removed.csv", Yvar="Y.outliers.removed.csv", non.zero=2, Corr.thresh=0.3, pvalue=0.05, p.adjust.methods="none",  heatmap=TRUE, hclust.method="complete",dist.m.method="euclidean",Clust.ppm=10, Clust.RT.tol=2, mode="negative", box.prop=0.2,   Yunits="Y_units",  HMDBtol=0.005,wd="~/STUDY NAME/"){
+
+require(fgui)
+require(tcltk2)
+
+ReturnVal <- tkmessageBox(title = "Auto PCA output directory",
+                          message = "Select the Auto PCA output directory", icon = "info", type = "ok")
+wd<-tk_choose.dir(default = "", caption = "Select directory")
+
+
+Auto.MV.Regress<-function( X="PCA.outliers.removed.csv", Yvar="Y.outliers.removed.csv", non.zero=2, Corr.thresh=0.3, pvalue=0.05, p.adjust.methods="none",  heatmap=TRUE, hclust.method="complete",dist.m.method="euclidean",Clust.ppm=10, Clust.RT.tol=2, mode="negative", box.prop=0.2,   Yunits="Y_units",  HMDBtol=0.005){
   
 ###load package dependencies
   require(gplots)
@@ -700,5 +709,24 @@ write.csv(significantmarker_data,"Features_Above_threshold.csv",row.names=FALSE)
   
 }
 }
+
+guiv(Auto.MV.Regress,
+     argText=list(X="Auto.PCA output file name ? ",
+                  Yvar="Y variable (.csv) file name following outlier removal (e.g. Y.outliers.removed.csv) ",                
+                  non.zero="Percentage of non-zero values to retain a Y-variable (else not considered) ? ",
+                  Corr.thresh="Pearson Correlation coefficient threshold ? ",
+                  pvalue="maximum p-value threshold ? ",
+                  p.adjust.methods="multiple testing correction method ? ",
+                  heatmap="Inter-feature HCA to identify highly correlated features/cluster ions ? ",
+                  hclust.method="Hierarchical Clustering method ? ",
+                  dist.m.method="Distance (dissimilarity) calculation method ? ",
+                  Clust.RT.tol="Cluster ion retention time tolerance (in seconds) ", 
+                  Clust.ppm="Cluster ion mass accuracy tolerance (in ppm) ",
+                  mode="Which polarity was the data acquired in ? ",
+                  box.prop="Quantile for high/low box plot generation (default is quintiles i.e. 0.2)",
+                  Yunits="Y units to be displayed on the plots ? ",
+                  HMDBtol="delta mass accuracy tolerance for HMDB hyperlink generation ? "),
+     argSlider=list(non.zero=c(0,100,0.5),Corr.thresh=c(0,1,0.01),pvalue=c(1,0,0.0001),Clust.RT.tol=c(0,10,0.5),Clust.ppm=c(0,40,0.5),HMDB.tol=c(0,5,0.0001)),
+     argOption=list(p.adjust.methods=c("NONE","BH","FDR","BONFERRONI","HOLM","HOCHBERG"),heatmap=c("TRUE","FALSE"),hclust.method=c("WARD.D","WARD.D2","SINGLE","COMPLETE","AVERAGE","MCQUITTY"),dist.m.method=c("EUCLIDEAN", "MAXIMUM", "MANHATTAN", "CANBERRA", "BINARY", "MINKOWSKI"),mode=c("positive","negative")),helps=NULL)
 
 ###END###
