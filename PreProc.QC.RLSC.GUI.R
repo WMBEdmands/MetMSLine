@@ -67,7 +67,7 @@ last.CCQC<-(grep(first.QC.name,colnames(X))+CCQC)
 #peakcolumn_no<-14+SGroups
 peakcolumnsIndex<-as.numeric(1:(grep(first.QC.name,colnames(X))-1))##index of peak information columns
 columnvector<-as.numeric(last.CCQC:length(X)) #all injections numeric vector
-  RAW_QCIndices<- seq(last.CCQC,length(X),QCInterval)
+RAW_QCIndices<- seq(last.CCQC,length(X),QCInterval)
 
 
 ####zero filling####
@@ -138,8 +138,12 @@ spline<-t(spline)
 curve<-X.2[,samplevector]<-spline
   
 ###reinsert normalised or non-normalised samples###
+if(CCQC!=0)
+{
 X[,(samples+(CCQC-1))]<-samples.df
-
+} else {
+  X[,(samples+(CCQC))]<-samples.df  
+}
 median.curve.df<-as.matrix(apply(curve,1,median))
 
 median.curve.df<-median.curve.df[,rep(1,ncol(curve))]

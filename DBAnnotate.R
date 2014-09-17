@@ -11,6 +11,8 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   message("...Done")#,quote=F)
   flush.console()
   
+  EIC.column.name<-colnames(sample)[1]
+  
   #sample<-sample[,-1]
   setwd(wd)
   MetaboliteData<-data.frame(read.csv(database,header=T))
@@ -232,30 +234,33 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   
   Metab_merge<-cbind(Metab_merge,DeltaMass,ppm)#data frame of search results
   
-  XCMSaligned<-as.data.frame(Metab_merge[Index_ppm_below,])
+  aligned<-as.data.frame(Metab_merge[Index_ppm_below,])
   
-  if (ncol(XCMSaligned)>1){
+  if (ncol(aligned)>1){
     
-  XCMSaligned<-aggregate.data.frame(XCMSaligned,by=list(XCMSaligned$XCMS_EIC,XCMSaligned$XCMSmzmed,XCMSaligned$medRT),paste,collapse=";")
-  
-  XCMSaligned<-XCMSaligned[,-c(5,6,7)]
-  
-  colnames(XCMSaligned)[1]<-"MS1_feature_ID";colnames(XCMSaligned)[2]<-"m.z";colnames(XCMSaligned)[3]<-"medRT"
-  
-  XCMSindex_belowdelta<-match(XCMSaligned[,"MS1_feature_ID"],sample[,"MS1_feature_ID"]) # sample index for results below delta
-  
-  XCMSaligned<-cbind(XCMSaligned,sample[XCMSindex_belowdelta,])# extract rows from XCMS data below delta and create dataframe (much wider search than below ppm)
-  
-  unmatched<-sample[-XCMSindex_belowdelta,]
- 
-  XCMSaligned<-subset(XCMSaligned, select=-c(XCMS_EIC,MetabIDno,Monoisotopic_mass,ParentIDno,name))
-  
-  write.csv (XCMSaligned, file="Allresults_belowMassTol.csv",row.names=FALSE)
-
-  write.csv (unmatched,file="unAnnotated.csv",row.names=FALSE)
-  
-  
-  }else if (ncol(XCMSaligned)<=1){
+    aligned<-aggregate.data.frame(aligned,by=list(aligned$MS1_feature_ID,aligned$m.z,aligned$medRT),paste,collapse=";")
+    
+    aligned<-aligned[,-c(5,6,7)]
+    
+    colnames(aligned)[1]<-"MS1_feature_ID";colnames(aligned)[2]<-"m.z";colnames(aligned)[3]<-"medRT"
+    
+    index_belowdelta<-match(aligned[,"MS1_feature_ID"],sample[,1]) # sample index for results below delta
+    
+    aligned<-cbind(aligned,sample[index_belowdelta,])# extract rows from XCMS data below delta and create dataframe (much wider search than below ppm)
+    
+    unmatched<-sample[-index_belowdelta,]
+    
+    aligned<-subset(aligned, select=-c(MS1_feature_ID,MetabIDno,Monoisotopic_mass,ParentIDno,name))
+    
+    ###Place the EIC column name in the first column position
+    aligned<-cbind(aligned[,EIC.column.name],aligned[,which(colnames(aligned)!=EIC.column.name)])
+    
+    write.csv (aligned, file="Allresults_belowMassTol.csv",row.names=FALSE)
+    
+    write.csv (unmatched,file="unAnnotated.csv",row.names=FALSE)
+    
+    
+  }else if (ncol(aligned)<=1){
     message(paste("No Matches Below",MassAcc,"ppm mass accuracy"))
     flush.console()
   } 
@@ -263,7 +268,7 @@ DBAnnotate<-function(X="Features_above_threshold.csv",database="metabolite_DB.cs
   } else if (nrow(results)<1){
     message(paste("No Matches Below",MassAcc,"ppm mass accuracy"))
     flush.console()
-   } 
-
+  } 
+  
 }
 ###END###

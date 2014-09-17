@@ -107,7 +107,12 @@ spline<-t(spline)
 curve<-X.2[,samplevector]<-spline
   
 ###reinsert normalised or non-normalised samples###
-X[,(samples+(CCQC-1))]<-samples.df
+if(CCQC!=0)
+{
+  X[,(samples+(CCQC-1))]<-samples.df
+} else {
+  X[,(samples+(CCQC))]<-samples.df  
+}
 
 median.curve.df<-as.matrix(apply(curve,1,median))
 

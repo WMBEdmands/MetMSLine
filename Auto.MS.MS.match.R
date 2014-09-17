@@ -473,7 +473,7 @@ Auto.MS.MS.match<-function(MSfeatures="Features_Above_threshold.csv",  mode="Neg
                   plot.file.name<-paste(Auto.MS.MS.file.name,MS.MS.Scan.num,"ID",EIC.name,XCMS.feature,"eV",Collision.energy.plot,sep="_")
                   plot.file.name<-paste(plot.file.name,".png",sep="")
                   
-                  Plot.url<-as.data.frame(paste(mzXML.dir,"/",plot.file.name,sep="")) ##url for corresponding MS MS file 
+                  Plot.url<-as.data.frame(paste(mzXML.dir,plot.file.name,sep="")) ##url for corresponding MS MS file 
                   Plot.file.url<-rbind(Plot.file.url,Plot.url)
                   
                   
