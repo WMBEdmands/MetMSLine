@@ -35,7 +35,7 @@ Auto.PCA<- function(PreProc.output="Corrected.LogT.csv",Yvar="Y.csv",QCInterval=
   
   ###read in Y variables from parent directory###
   Ydir.name<-substr(study.dir,1,nchar(study.dir)-24)
-  
+  ### find out what is this hard-coded -24 There should be a better way.
   setwd(Ydir.name)
   
   Y<-t(as.data.frame(read.csv(Yvar,header=T,row.names=1)))#Y independent variables for downstream stats analyses
