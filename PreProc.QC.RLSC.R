@@ -95,7 +95,7 @@ QCs<-X.2[,QCIndices]
 #Lowess smoothing
 
 Lowess<-apply(QCs,1,lowess,f=smoother.span) #apply Lowess smoothing on QCs, arguments can be added here
-Lowess<- data.frame(matrix(unlist(Lowess), nrow=length(X$name), byrow=T)) #coerce list result to dataframe
+Lowess<- data.frame(matrix(unlist(Lowess), nrow=length(rownames(X)), byrow=T)) #coerce list result to dataframe
 Lowess<-Lowess[-c(1:length(QCs[1,]))] # remove X coordinates
 X.2[,QCIndices]<-Lowess # replace QC values with LOESS smoothed
 
