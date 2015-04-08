@@ -45,12 +45,16 @@ Auto.PCA<- function(PreProc.output="Corrected.LogT.csv",Yvar="Y.csv",QCInterval=
   Y<-t(as.data.frame(read.csv(Yvar,header=T,row.names=1)))#Y independent variables for downstream stats analyses
   
   ###create Auto.PCA results sub directory to keep everything tidy####
-  
-  dir.name<-paste(substr(study.dir,1,nchar(study.dir)-24),"/Auto.PCA.results/",sep="")
-  
-  dir.create(dir.name)
+  # stef mod 2 #
+  ## original ## dir.name<-paste(substr(study.dir,1,nchar(study.dir)-24),"/Auto.PCA.results/",sep="")
+  # again i prefer not to have hardcoded -24
+  dir.create("/Auto.PCA.results/")
+  setwd("/Auto.PCA.results/")
+  dir.name <- getwd()
  
-  setwd(dir.name)
+  #setwd(dir.name)
+  #end of stef mod 2 #
+  
   date<-Sys.time()
   date<-gsub("-",".",date)
   write.csv(Parameters,paste("Parameters",substr(date,1,10),".csv",sep=" "),row.names=FALSE)
