@@ -34,9 +34,13 @@ Auto.PCA<- function(PreProc.output="Corrected.LogT.csv",Yvar="Y.csv",QCInterval=
   X<-X[rowSums(is.na(X))<5, ] # remove all observations with more than 5 N/A
   
   ###read in Y variables from parent directory###
-  Ydir.name<-substr(study.dir,1,nchar(study.dir)-24)
+  
+  # stef mod 1#
+  # original #Ydir.name<-substr(study.dir,1,nchar(study.dir)-24)
   ### find out what is this hard-coded -24 There should be a better way.
-  setwd(Ydir.name)
+  setwd("../")
+  Ydir.name <- getwd()
+  #end of stef mod1 #
   
   Y<-t(as.data.frame(read.csv(Yvar,header=T,row.names=1)))#Y independent variables for downstream stats analyses
   
