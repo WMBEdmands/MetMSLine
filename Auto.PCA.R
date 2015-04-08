@@ -48,7 +48,9 @@ Auto.PCA<- function(PreProc.output="Corrected.LogT.csv",Yvar="Y.csv",QCInterval=
   # stef mod 2 #
   ## original ## dir.name<-paste(substr(study.dir,1,nchar(study.dir)-24),"/Auto.PCA.results/",sep="")
   # again i prefer not to have hardcoded -24
+  if (!file.exists("/Auto.PCA.results/")) {
   dir.create("/Auto.PCA.results/")
+  }
   setwd("/Auto.PCA.results/")
   dir.name <- getwd()
  
