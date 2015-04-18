@@ -34,19 +34,29 @@ Auto.PCA<- function(PreProc.output="Corrected.LogT.csv",Yvar="Y.csv",QCInterval=
   X<-X[rowSums(is.na(X))<5, ] # remove all observations with more than 5 N/A
   
   ###read in Y variables from parent directory###
-  Ydir.name<-substr(study.dir,1,nchar(study.dir)-24)
   
-  setwd(Ydir.name)
+  # stef mod 1#
+  # original #Ydir.name<-substr(study.dir,1,nchar(study.dir)-24)
+  ### find out what is this hard-coded -24 There should be a better way.
+  setwd("../")
+  Ydir.name <- getwd()
+  #end of stef mod1 #
   
   Y<-t(as.data.frame(read.csv(Yvar,header=T,row.names=1)))#Y independent variables for downstream stats analyses
   
   ###create Auto.PCA results sub directory to keep everything tidy####
-  
-  dir.name<-paste(substr(study.dir,1,nchar(study.dir)-24),"/Auto.PCA.results/",sep="")
-  
-  dir.create(dir.name)
+  # stef mod 2 #
+  ## original ## dir.name<-paste(substr(study.dir,1,nchar(study.dir)-24),"/Auto.PCA.results/",sep="")
+  # again i prefer not to have hardcoded -24
+  if (!file.exists("/Auto.PCA.results/")) {
+  dir.create("/Auto.PCA.results/")
+  }
+  setwd("/Auto.PCA.results/")
+  dir.name <- getwd()
  
-  setwd(dir.name)
+  #setwd(dir.name)
+  #end of stef mod 2 #
+  
   date<-Sys.time()
   date<-gsub("-",".",date)
   write.csv(Parameters,paste("Parameters",substr(date,1,10),".csv",sep=" "),row.names=FALSE)

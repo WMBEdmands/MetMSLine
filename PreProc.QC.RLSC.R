@@ -42,7 +42,13 @@ columnvector<-as.numeric(last.CCQC:length(X)) #all injections numeric vector
 ####zero filling####
   
   ##Remove rows containing missing values
-  X<-na.omit(X)
+  #stef mod 18-apr-15
+  if(names(table(is.na(X)))[2] == TRUE){
+      X<-na.omit(X)
+    }else if (names(table(is.na(X)))[2] == NA){ 
+        message("no NAs in table to be removed")
+    }
+  
   peakcolumns<-X[,peakcolumnsIndex]###subset peak variable information columns
 
   X.2<-X #create X.2 matrix
@@ -95,7 +101,7 @@ QCs<-X.2[,QCIndices]
 #Lowess smoothing
 
 Lowess<-apply(QCs,1,lowess,f=smoother.span) #apply Lowess smoothing on QCs, arguments can be added here
-Lowess<- data.frame(matrix(unlist(Lowess), nrow=length(X$name), byrow=T)) #coerce list result to dataframe
+Lowess<- data.frame(matrix(unlist(Lowess), nrow=length(rownames(X)), byrow=T)) #coerce list result to dataframe
 Lowess<-Lowess[-c(1:length(QCs[1,]))] # remove X coordinates
 X.2[,QCIndices]<-Lowess # replace QC values with LOESS smoothed
 
