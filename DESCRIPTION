@@ -12,10 +12,10 @@ Depends:
     R (>= 3.2.0),
     tcltk2,
     zoo,
-    pcaMethods,
     fpc,
     fastcluster
 Imports: 
+    pcaMethods,
     ff,
     dynamicTreeCut,
     data.table,
