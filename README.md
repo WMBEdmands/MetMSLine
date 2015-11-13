@@ -7,6 +7,7 @@ Overview
 ===============
 
 The workflow consists of 5 stages:
+
 1. pre-processing. Performs all multiparametric preprocessing steps for large-scale high-resolution LC-MS metabolomic datasets.
 
 2. PCA outlier removal and cluster identification. Principal Component Analysis (PCA) of pre-processed LC-MS data with iterative automatic outlier removal based on a user defined Hotelling’s T2 ellipse expansion
