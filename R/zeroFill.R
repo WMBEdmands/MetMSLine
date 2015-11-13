@@ -6,14 +6,14 @@
 #' @param peakTable either a data.frame, full file path as a character string to a  .csv file of a peak table in the form observation (samples) in columns and
 #' variables (Mass spectral signals) in rows. If argument is not supplied a GUI file selection window will open and a .csv file can be selected.
 #' @param obsNames character vector of observation (i.e. sample/ QC/ Blank) names to identify appropriate observation (sample) columns.
-#' @param value numeric value to fill zero/ missing values (NA). If left blank
-#' then half the mimimum non-zero observed peak intensity is used.
+#' @param value numeric value to fill zero/ missing values (NA). By default
+#' half the mimimum non-zero observed peak intensity is used.
 #' 
 #' @return a data frame identical to peakTable with zero/ NAs filled with half
 #' the mimimum non-zero observed value.
 #' @export
 zeroFill <- function(peakTable=NULL, obsNames=NULL, value=NULL){
-  
+  # error handling
   if(is.null(obsNames)){
     stop('argument obsNames is missing with no default')
   } 
@@ -30,7 +30,8 @@ zeroFill <- function(peakTable=NULL, obsNames=NULL, value=NULL){
   obsTable <- peakTable[, obsIndx]
   obsTable[is.na(obsTable)] <- 0
   # replace any zero with half the minimum not zero value
-  message("zero filling...")
+  message("zero filling with ", 
+          ifelse(is.null(value), 'half the minimum non-zero value', value), '\n')
   flush.console()
   if(is.null(value)){
   minNotzero <- sort(unlist(obsTable))

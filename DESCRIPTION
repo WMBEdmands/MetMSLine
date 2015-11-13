@@ -1,11 +1,29 @@
 Package: MetMSLine
 Type: Package
-Title: Conducts all steps of metabolomics data pre-processing, outlier removal and adduct identification.
-Version: 0.0.0.9013
+Title: Conducts all steps of metabolomics data pre-processing, outlier removal
+    and adduct identification.
+Version: 0.0.0.9014
 Date: 2015-07-28
 Author: Will Edmands <edmandsw@berkeley.edu>
 Maintainer: Will Edmands <edmandsw@berkeley.edu>
-Description: Conducts all steps of metabolomics data pre-processing, outlier removal and adduct identification.
-Depends: R (>= 3.2.0), tcltk2, zoo, pcaMethods, fpc, fastcluster  
-Imports: shiny, DT, ff, dynamicTreeCut, data.table, reshape2
-License: GPL (>= 2)
+Description: Conducts all steps of metabolomics data pre-processing, outlier
+    removal and adduct identification.
+Depends: 
+    R (>= 3.2.0),
+    tcltk2,
+    zoo,
+    pcaMethods,
+    fpc,
+    fastcluster
+Imports: 
+    ff,
+    dynamicTreeCut,
+    data.table,
+    reshape2,
+    bootstrap,
+    foreach
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
+License: GPL (>= 3)
+RoxygenNote: 5.0.0

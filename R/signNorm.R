@@ -45,13 +45,13 @@ signNorm <- function(peakTable=NULL, obsNames=NULL, method="medFC"){
   if(length(obsNames) != length(method)){
     stop("The length of custom normalization factor must be the same as the obsNames argument")
   }
-  message("custom normalization method...")
+  message("custom normalization method...\n")
   flush.console()
   # sweep out the custom vector 
   obsTable <- sweep(obsTable, 2, method, "/")
   } else { # undertake default methods  
   message(ifelse(method == "medFC", "Median fold change", "Total ion"), 
-          " normalization...")
+          " normalization...\n")
   flush.console()
 
   if(method == "medFC"){

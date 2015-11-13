@@ -1,16 +1,14 @@
-#'  plot PCA with expanded Hotelling's ellipse adapted from \code{\link{plotPcs}} from 
-#'  the \code{\link{pcaMethods}} package.
+#' plot PCA with expanded Hotelling's ellipse adapted from \code{\link{plotPcs}} from 
+#' the \code{\link{pcaMethods}} package.
 #'  
-#'  @param object \code{\link{pcaRes}} class object
-#'  @param exEllipse matrix of expanded Hotelling's Ellipse see \code{\link{pcaOutId}}.
-#'  @param type character either "scores" or "loadings" for scores or loadings plot respectively
-#'  @param Further arguments to \code{\link{pairs}} on which this function is based.
+#' @param object \code{\link{pcaRes}} class object
+#' @param exEllipse matrix of expanded Hotelling's Ellipse see \code{\link{pcaOutId}}.
+#' @param type character either "scores" or "loadings" for scores or loadings plot respectively
+#' @param Further arguments to \code{\link{pairs}} on which this function is based.
 #'  
-#'  @seealso \code{\link{pcaOutId}}, \code{\link{pcaRes}}, \code{\link{pca}}.
-#'  @export
-plotPcsEx <- function (object, exEllipse,  type = c("scores", "loadings"), 
-                        ...) 
-{
+#' @seealso \code{\link{pcaOutId}}, \code{\link{pcaRes}}, \code{\link{pca}}.
+#' @export
+plotPcsEx <- function(object, exEllipse,  type = c("scores", "loadings"), ...){
   pcs <- 1:nP(object)
   type <- match.arg(type)
   panel <- function(x, y, ...) {

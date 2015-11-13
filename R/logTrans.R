@@ -29,7 +29,7 @@ logTrans <- function(peakTable=NULL, obsNames=NULL, base=exp(1)){
   if(any(is.na(obsTable) | obsTable == 0)){
     stop("peakTable observations contain NAs or zeros unable to log transform, use the ?zeroFill function")
   }
-  message("log transforming to the base ", round(base, digits=3), "...")
+  message("log transforming to the base ", round(base, digits=3), "...\n")
   flush.console()
   # convert chars to numeric
   obsTable <- apply(obsTable, 2, as.numeric)

@@ -1,0 +1,137 @@
+---
+title: "MetMSLine Basics"
+author: "WMB Edmands"
+date: '`r format(Sys.Date(), "%B %e, %Y")`'
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{MetMSLine Basics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The following illustrates the automated MetMSLine workflow with example data
+for those less familiar with R and the command line interface.
+R is primarily an interactive programming language, however a degree of automation
+can be acheived by the usage of wrapper functions, that is software functions
+that 'wrap' together several other software functions. 
+
+## Getting started. 
+
+Install all of the latest package dependencies needed for proper/ complete 
+functionality of MetMSLine. Copy and paste the following command into R and hit enter:
+```{r, eval=F}
+install.packages(c( 'ff', 'dynamicTreeCut', 'data.table', 'reshape2', 'foreach'))
+```
+
+This may take several minutes.
+
+Read in example peak table and co-variates and pre-process the data. Run the
+following code in the same R session at the command line (i.e. copy and paste the lines and hit enter):
+```{r, include=F}
+library(MetMSLine)
+```
+```{r, collapse=TRUE}
+# read in table of synthetic MS1 metabolomic profiling data
+peakTable <- system.file("extdata", "synthetic_MS_data.csv", package = "MetMSLine")
+peakTable <- read.csv(peakTable, header=T, stringsAsFactors=F)
+
+
+# load synthetic co-variates table in comma delimited csv file
+coVariates <- system.file("extdata", "synthetic_coVar_data.csv", package = "MetMSLine")
+coVariates <- read.csv(coVariates, header=T)
+```
+
+Next we need to establish the names of the samples, these observation names
+will be used to identify the correct column names in the peak table.
+
+By entering the command colnames we can see all of the names of the columns in
+our peak table:
+```{r}
+colnames(peakTable)
+```
+
+The synthetic peak table appears very similar to output from the XCMS peak picking
+software (specifically the **?xcms::diffreport** function).  
+
+We can see that there are many columns containing important information about each
+LC-MS variable such as the median mass-to-charge ("mzmed") and the median retention time
+("rtmed") for example. Regardless of peak picking software (xcms or otherwise) a peak-picker 
+output table in its most basic interpretation will almost always consist of rows 
+of LC-MS variables and columns corresponding LC-MS variable information and 
+sample peak intensity/ height information.
+
+In order for MetMSLine to work it must know the column names which correspond to
+the observation/ sample peak intensity information. In certain cases such as 
+lowess smoothing MetMSLine must also be supplied with the names of quality 
+control samples also in order to distinguish these from other samples.
+
+We can see that from column 18 to the last column there are observation columns.
+Within which we can see quality controls containing the character string "QC_", 
+blanks (i.e. negative controls) containing the character string "blank_" and also
+samples containing the character string "sample_". These unique character strings
+can be then be used to quickly identify the correct column names to supply to MetMSLine
+within your R session, like so:
+
+```{r}
+# observation names (i.e. sample names) by regular expression (?grep)
+# all observation names
+obsNames <- colnames(peakTable)[grep("QC_|sample_|blank_", colnames(peakTable))]
+# print all the observation names
+obsNames
+```
+
+We can also identify the quality control samples and assign them to a new
+variable qcNames 
+```{r}
+qcNames <- colnames(peakTable)[grep("QC_", colnames(peakTable))] 
+# print the QC names
+qcNames
+```
+
+Then the sample names (assigned to sampNames)
+```{r}
+sampNames <- colnames(peakTable)[grep("sample_", colnames(peakTable))]
+# print the sample names
+sampNames
+```
+
+Then finally the blank sample names (assigned to blankNames).
+```{r}
+blankNames <- colnames(peakTable)[grep("blank_", colnames(peakTable))]
+# print the blank names
+blankNames
+```
+
+
+Now that we have identified our observation column names we can now start the
+MetMSLine process by supplying the necessary arguments to the wrapper functions.
+
+## 1. LC-MS peak table preprocessing.
+```{r}
+# detect number of cores using parallel package
+nCores <- parallel::detectCores()
+# conduct LC-MS data preprocessing
+preProc_peakTable <- preProc(peakTable, obsNames, sampNames, qcNames, blankNames,
+                             cvThresh=30, nCores=nCores)
+```
+
+The table returned from the preProc function contains three additional columns:
+```{r}
+tail(colnames(preProc_peakTable), n=3)
+```
+
+1. smoothSpanLoessFit: column contains the optimal loess smooth span parameter
+identified by 7-fold cross validation for each LC-MS variable.
+
+2. meanFCsampBlank: the fold change value of samples:blanks.
+
+3. coeffVar: the coefficient of variation (CV%) of the repeat pooled QC injections for each LC-MS variable.
+
+Furthermore, the original peakTable has also been subset and LC-MS variables
+which were below the sample:blank fold change threshold (the default is >2 fold) 
+or above the CV% threshold set (the default is 30%).
+
+if you want to find out more about this wrapper function you can simply type ?MetMSLine::preProc
+in your R console and hit enter to see the help page.
+
+## 2. PCA based automated outlier detection and cluster identification.

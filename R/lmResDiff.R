@@ -15,8 +15,10 @@
 #' @param minPintercept the minimum p value threshold for the intercept value of \code{\link{lm}}. 
 #' @param minPcontVar he minimum p value threshold for the continuous variable contVar of \code{\link{lm}}
 #' @param MTC multiple testing correction method see(\code{\link{p.adjust}}). default = "BH".
-#' @return returns a data.frame containing the variables found to be below both
-#' p value thresholds (minPintercept and minPcontVar)
+#' @return returns a list containing two elements:
+#' 1. resultsTable = a data.frame containing the variables found to be below both
+#' p value thresholds (minPintercept and minPcontVar).
+#' 2. resDiff = a data.frame containing the substraction of the resDiffId groups.
 #' @export
 lmResDiff <- function(batchAdjusted=NULL, obsNames=NULL, resDiffId=NULL, 
                       contVar=NULL, minPintercept=0.005, minPcontVar=0.005, 
@@ -55,10 +57,10 @@ lmResDiff <- function(batchAdjusted=NULL, obsNames=NULL, resDiffId=NULL,
   
   # transpose obsTable
   obsTable <- t(obsTable) 
-  # subtract residuals cases and controls
-  dfResCases <- obsTable[resDiffId == T, ]
-  dfResControls <- obsTable[resDiffId == F, ]
-  resDifferences <- dfResCases - dfResControls
+  # subtract residuals 1 and 2
+  dfRes1 <- obsTable[resDiffId == T, ]
+  dfRes2 <- obsTable[resDiffId == F, ]
+  resDifferences <- dfRes1 - dfRes2
   # linear model res differences and continuous var
   message("calculating linear model and extracting coefficients...")
   flush.console()
@@ -82,5 +84,5 @@ lmResDiff <- function(batchAdjusted=NULL, obsNames=NULL, resDiffId=NULL,
   # restrict to lowest p-values intercept and TTD
   SFeatInterContVar <- residContVarDf[residContVarDf[, "Intercept p Value"] < minPintercept & 
                                         residContVarDf[, "ContVar p Value"] < minPcontVar, , drop=F]
-  return(SFeatInterContVar)
+  return(list(resultsTable=SFeatInterContVar, resDiff=resDifferences))
 }
