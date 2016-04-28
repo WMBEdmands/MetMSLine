@@ -1,6 +1,8 @@
 MetMSLine
 =========
 
+[![DOI](https://zenodo.org/badge/21719/WMBEdmands/MetMSLine.svg)](https://zenodo.org/badge/latestdoi/21719/WMBEdmands/MetMSLine)
+
 R functions for automation of biomarker discovery based on processing downstream of peak picking softwares.
 
 Overview
