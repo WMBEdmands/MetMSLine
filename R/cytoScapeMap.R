@@ -76,18 +76,29 @@ cytoScapeMap <- function(peakTable=NULL, obsNames=NULL, outDir=NULL, EICnos=NULL
   sif <- apply(cor.m, 2, function(x){
     pos.tmp <- which(x > corrThresh)
     neg.tmp <- which(x < -corrThresh)
+    if(length(pos.tmp) > 0){
+    names(pos.tmp) <- x[pos.tmp]
+    }
+    if(length(neg.tmp) > 0){
+    names(neg.tmp) <- x[neg.tmp]
+    }
     return(list(pos=pos.tmp, neg=neg.tmp))
   })
   # melt list result
   sif.df <- reshape2::melt(sif)
+  # add correlation value
+  sif.df[, 4] <- as.numeric(gsub('.+pos\\.|.+neg\\.', '', names(unlist(sif))))
   # create sif file names
-  sif.df[, 4] <- names(sif)[sif.df[, 1]]
+  sif.df[, 5] <- names(sif)[sif.df[, 1]]
   # n nodes and edges
-  nodeAttr <- data.frame(name=as.numeric(unique(c(sif.df[, 3], sif.df[, 4]))))
+  nodeAttr <- data.frame(name=as.numeric(unique(c(sif.df[, 3], sif.df[, 5]))))
   message(nrow(nodeAttr), 
           " nodes with ", nrow(sif.df), " edges identified at a corrThresh of ", 
           corrThresh)
   flush.console()
+  # add no corr features
+  noCorrFeat <- setdiff(peakTable[, EICnos], unique(c(sif.df[, 3], sif.df[, 5])))
+  nodeAttr <- rbind(nodeAttr, data.frame(name=as.numeric(noCorrFeat)))
   nodeAttr <- merge(nodeAttr, peakTable, by.x="name", by.y=EICnos)
   nodeAttr <- nodeAttr[, -unique(unlist(lapply(obsNames, grep, colnames(nodeAttr))))]
   idCols <- data.frame(name=nodeAttr$name, matrix("", ncol=2, nrow=nrow(nodeAttr)))
@@ -96,7 +107,7 @@ cytoScapeMap <- function(peakTable=NULL, obsNames=NULL, outDir=NULL, EICnos=NULL
   nodeAttr <- cbind(idCols, nodeAttr)
   # write sif file
   cytoScape_dir <- paste0(outDir, '/cytoScapeFiles')
-  dir.create(cytoScape_dir)
+  suppressWarnings(dir.create(cytoScape_dir))
   res.dir <- paste0(cytoScape_dir, 
                     "/cytoScape_", corrThresh, "_n", length(obsNames), 
                     "_samples", "_", fileNameId)
@@ -104,12 +115,19 @@ cytoScapeMap <- function(peakTable=NULL, obsNames=NULL, outDir=NULL, EICnos=NULL
           dirname(res.dir))
   flush.console()
   # write sif
-  write.table(paste0(sif.df[, 3], " \t tm \t ", sif.df[, 4], "\n"), 
+  # add in features with no correlation above thresh
+  noCorrFeatM <- matrix(0, nrow=length(noCorrFeat), ncol=5)
+  colnames(noCorrFeatM) <- colnames(sif.df)
+  noCorrFeatM[, 3] <- noCorrFeat
+  noCorrFeatM[, 5] <- noCorrFeat
+  sif.df <- rbind(sif.df, noCorrFeatM)
+  write.table(paste0(sif.df[, 3], " \t tm \t ", sif.df[, 5], "\n"),
               paste0(res.dir, ".sif"), col.names=F, quote=F, row.names=F)
   # create node names
-  sif.df[, 5] <- paste0(sif.df[, 3], " (tm) ", sif.df[, 4])
+  sif.df[, 6] <- paste0(sif.df[, 3], " (tm) ", sif.df[, 5])
   
-  edgeAttr <- data.frame(name=sif.df[, 5], correl_direction=sif.df[, 2])
+  edgeAttr <- data.frame(name=sif.df[, 6], correl_direction=sif.df[, 2],
+                         corr=sif.df[, 4], corrRounded=abs(round(sif.df[, 4], digits=1)))
   # write edge attributes
   write.table(edgeAttr,
               paste0(res.dir,"_edgeAttr.txt"), sep="\t", row.names=F, quote=F)
