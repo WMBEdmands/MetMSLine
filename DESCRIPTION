@@ -2,7 +2,7 @@ Package: MetMSLine
 Type: Package
 Title: Conducts all steps of metabolomics data pre-processing, outlier removal
     and adduct identification.
-Version: 1.0.0
+Version: 1.0.1
 Date: 2015-07-28
 Author: Will Edmands <edmandsw@berkeley.edu>
 Maintainer: Will Edmands <edmandsw@berkeley.edu>

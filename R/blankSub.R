@@ -48,8 +48,12 @@ blankSub <- function(peakTable=NULL, blankNames=NULL, sampNames=NULL, method="me
   if(method == 'mean'){
   peakTable[ ,'meanFCsampBlank'] <- apply(peakTable, 1, function(Var){
   mean(as.numeric(Var[sampIndx])) / mean(as.numeric(Var[blankIndx]))})
+  # plot fold change distribution
+  plot(sort(peakTable$meanFCsampBlank), ylim=c(0, 100), type='h', 
+       main='fold change distribution', ylab='mean fold changes', xlab='order')
+  abline(h=rep(thresh, nrow(peakTable)), col='red')
   # above thresh indx
-  abThrIndx <- which(peakTable[ ,'meanFCsampBlank'] > thresh) 
+  abThrIndx <- which(peakTable[ ,'meanFCsampBlank'] >= thresh) 
   message(length(abThrIndx), ' (', round((length(abThrIndx)/nrow(peakTable)) * 100, digits=1), 
           '%) of the LC-MS features were above the mean sample:blank fold change threshold of ', 
           thresh, '\n')
@@ -65,8 +69,11 @@ blankSub <- function(peakTable=NULL, blankNames=NULL, sampNames=NULL, method="me
   } else {
   peakTable[ ,'medianFCsampBlank'] <- apply(peakTable, 1, function(Var){
   median(as.numeric(Var[sampIndx])) / median(as.numeric(Var[blankIndx]))})
+  plot(sort(peakTable$medianFCsampBlank), ylim=c(0, 100), type='h', 
+       main='fold change distribution', ylab='median fold changes', xlab='order')
+  abline(h=rep(thresh, nrow(peakTable)), col='red')
   # above thresh indx
-  abThrIndx <- which(peakTable[ ,'medianFCsampBlank'] > thresh) 
+  abThrIndx <- which(peakTable[ ,'medianFCsampBlank'] >= thresh) 
   message(length(abThrIndx), ' (', round((length(abThrIndx)/nrow(peakTable)) * 100, digits=1), 
           '%) of the LC-MS features were above the median sample:blank fold change threshold of ', 
           thresh, '\n')
