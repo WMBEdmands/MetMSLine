@@ -18,10 +18,6 @@ and PCA scores cluster identification (using PAM clustering and regression).
 3. Objective univariate statistical analysis based on covariate type.
 Multiparametric, automatic regression analysis, biomarker discovery, hierarchical clustering analysis and cluster ion and isotope identification for high resolution LC-MS data with multiple continuous Y variables. 
 
-4. Biomarker identification...
-
-5. ...
-
 Installation
 ==============
 install directly from github using the devtools package. First install devtools,
