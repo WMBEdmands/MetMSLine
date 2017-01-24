@@ -111,7 +111,7 @@ cytoScapeMap <- function(peakTable=NULL, obsNames=NULL, outDir=NULL, EICnos=NULL
   res.dir <- paste0(cytoScape_dir, 
                     "/cytoScape_", corrThresh, "_n", length(obsNames), 
                     "_samples", "_", fileNameId)
-  message("writing results output sif, node and edge attribute files to mzXML file directory :\n", 
+  message("writing results output sif, node and edge attribute files to output file directory :\n", 
           dirname(res.dir))
   flush.console()
   # write sif

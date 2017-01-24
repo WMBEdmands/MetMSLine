@@ -143,10 +143,10 @@ coVarTypeStat <- function(peakTable=NULL, obsNames=NULL, coVariate=NULL, continu
       # if Continuous False then create two sample variable from continuous
       varType <- ifelse(continuous == F, "two sample", varType)
       # high low two sample using cut
-      binom.cont <- as.numeric(cut(as.numeric(coVariate), 2))
+      binom.cont <- as.numeric(cut(as.numeric(as.character(coVariate)), 2))
       # if still Continuous  then do correlation
       if(varType == "Continuous"){
-        coVariate <- as.numeric(coVariate)
+        coVariate <- as.numeric(as.character(coVariate))
         # if parametric pearson else if non-parametric spearman
         method.tmp <- ifelse(Logged == T, "pearson", "spearman")
         # apply correlation coeff and calc FC
