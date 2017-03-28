@@ -10,6 +10,7 @@ The MetMSLine workflow scripts and associated functions have now migrated to pac
 MetMSLine combined with the [compMS2Miner](https://github.com/WMBEdmands/compMS2Miner) package are intended to facilitate autonomous metabolomic data analysis. These two packages combined with the [xcms](https://bioconductor.org/packages/release/bioc/html/xcms.html) and [CAMERA](https://bioconductor.org/packages/release/bioc/html/CAMERA.html) R packages a complete and largely autonomous metabolomic workflow can be acheived.
 
 If you find MetMSLine useful please cite us:
+
 **MetMSLine: an automated and fully integrated pipeline for rapid processing of high-resolution LC-MS metabolomic datasets.**
 *William Matthew Bell Edmands, Dinesh Kumar Barupal, Augustin Scalbert*
 Bioinformatics 2015; 31 (5): 788-790.
@@ -18,7 +19,7 @@ Bioinformatics 2015; 31 (5): 788-790.
 Overview
 ===============
 
-The workflow consists of 3 stages:
+The workflow consists of 5 stages:
 
 1. pre-processing. Performs all multiparametric preprocessing steps for large-scale high-resolution LC-MS metabolomic datasets.
 
@@ -28,6 +29,7 @@ and PCA scores cluster identification (using PAM clustering and regression).
 3. Objective univariate statistical analysis based on covariate type.
 Multiparametric, automatic regression/statistical analysis, biomarker discovery for high resolution LC-MS data with multiple Y variables. 
 
+4. - 5. metabolite annotation steps have now been largely supplanted by the [compMS2Miner](https://github.com/WMBEdmands/compMS2Miner) package.
 ...
 
 Installation
