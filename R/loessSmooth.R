@@ -9,7 +9,13 @@
 #' @param sampNames character vector of sample names to identify appropriate observation (sample) columns.
 #' @param qcNames character vector of quality control (QC) names to identify appropriate observation (sample) columns.
 #' @param nCores number of cores to use for parallel processing with the foreach
-#' and snow packages. 
+#' and snow packages.  
+#' @param outputDir optional directory path to save output images before and after QC
+#' smoothing. A subdirectory will be created in which to save the png images.
+#' @param smoothSpan fixed smoothing span. If supplied a this fixed smoothing
+#' span parameter will override the cross validated feature-by-feature smoothing
+#' span optimization.
+#' @param folds numeric (default=7, i.e. 7-fold cross validation).
 #' @details systematic drifts in mass spectral signal can be corrected using
 #' intervally injected pooled quality control samples for each mass spectral signal
 #' variable in the peak table. The optimum span parameter for each LC-MS feature 
@@ -44,7 +50,7 @@
 #'  \code{\link{crossval}}, \code{\link{predict.loess}}, \code{\link{set.seed}}.
 #' @export
 loessSmooth <- function(peakTable=NULL, sampNames=NULL, qcNames=NULL, 
-                         nCores=NULL){
+                        nCores=NULL, outputDir=NULL, smoothSpan=NULL, folds=7){
   # error handling
   if(is.null(sampNames)){
     stop('argument sampNames is missing with no default')
@@ -79,30 +85,61 @@ loessSmooth <- function(peakTable=NULL, sampNames=NULL, qcNames=NULL,
   # match QC names to peak table colnames
   qcIndxObs <- match(qcNames, colnames(obsTable))
   
-  message("applying LOESS fit (7-fold CV) and signal drift/ attenuation smoothing...\n")
-  flush.console()
+  # check if all samples bounded by qcs
+  if(max(qcIndxObs) < max(sampIndxObs) | min(qcIndxObs) > min(sampIndxObs)){
+    stop('All samples must be bounded by quality control samples.')
+  }
   # convert to numeric in case character or factor
   obsTable <- data.frame(apply(obsTable, 2, as.numeric), stringsAsFactors=F)
   # new Df observatin and QC indx for loess modelling
   qcsTable <- data.frame(t(obsTable[, qcIndxObs]), qcIndxObs, stringsAsFactors=F)
+  
+  if(folds > length(qcIndxObs)){
+    message('number of QCs less than number of folds (cross-validation) reducing to ', length(qcIndxObs))
+    flush.console()
+    folds <- length(qcIndxObs)
+  }
+  
+  message("Calculating LOESS fit (", folds, "-fold CV) using ", length(qcIndxObs), " QC samples and signal drift/attenuation smoothing...\n")
+  flush.console()
+  
+  qcDummyIdx <- {1:ncol(obsTable) %in% qcIndxObs} + 1
+  # show plots before and after smoothing
+  if(!is.null(outputDir)){
+    lSmDir <- paste0(outputDir, '/loessSmooth/')
+    dir.create(lSmDir)
+    plotFiles <- paste0(lSmDir, '/', 'EIC_', peakTable[, 1], '.png')
+    message('Generating ', nrow(peakTable), ' output images in output directory:\n',
+            lSmDir, '\n\n')
+    flush.console()
+  }
   # if nCores !null then start snow cluster
   if(!is.null(nCores)){
     if(!require(foreach)){
-      stop('The foreach package (install.packages("foreach")) must be installed to perform parallel computations...')
+      stop('The foreach package (install.packages("foreach")) must be installed to perform parallel computation...')
     }
     message(paste0("Starting SNOW cluster with ", nCores, 
                    " local sockets...\n"))
     flush.console()
     cl <- parallel::makeCluster(nCores)
     doSNOW::registerDoSNOW(cl)
-    message("7-fold cross validaton loess fitting will be applied to ", 
+    message(folds, "-fold cross validaton loess fitting will be applied to ", 
             nrow(peakTable), " LC-MS features. Please wait...\n")
     flush.console()
    
-    obsTable <- foreach(Var=1:nrow(obsTable), .packages="bootstrap", .combine='rbind') %dopar% 
-    {
+    cat(paste0('Progress (', nrow(peakTable), ' LC-MS features):\n'))
+    progSeq <- round({nrow(peakTable) * seq(0, 1, 0.05)}, 0)
+    progSeq[1] <- 1
+    progress <- function(n){if(n %in% progSeq){cat(paste0(round({n/nrow(peakTable)} * 100, 0), '%  '))}}
+    opts <- list(progress=progress)
+    
+    
+    obsTable <- foreach(Var=1:nrow(obsTable), .packages=c("bootstrap", "zoo"), 
+                         .combine='rbind', .options.snow=opts) %dopar% {
       loessFitKfoldCV(qcIndxObs, qcsTable[, Var], 
-                      obsTable[Var, ])
+                      obsTable[Var, ], smoothSpan=smoothSpan, folds = folds, 
+                      plotFile=switch({!is.null(outputDir)} + 1, NULL, plotFiles[Var]),
+                      colours=c("black", "red")[qcDummyIdx])
     }
     parallel::stopCluster(cl)
     # rename last smoothSpanLoessFit column
@@ -118,20 +155,14 @@ loessSmooth <- function(peakTable=NULL, sampNames=NULL, qcNames=NULL,
     # set progress bar
     setTxtProgressBar(pb, Var)
     obsTable[Var, ] <- loessFitKfoldCV(qcIndxObs, qcsTable[, Var], 
-                                       obsTable[1:(ncol(obsTable) - 1), Var])
+                                        obsTable[Var, -ncol(obsTable)],
+                                        smoothSpan=smoothSpan,
+                                        folds = folds, 
+                                        plotFile=switch({!is.null(outputDir)} + 1, NULL, plotFiles[Var]),
+                                        colours=c("black", "red")[qcDummyIdx])
   }
   }
-  # warn user if any variables contain negative values
-  negVals <- apply(obsTable[, 1:(ncol(obsTable) - 1)], 1, function(Var) any(Var < 0))
-  lNegValsIndx <- length(which(negVals))
-  if(lNegValsIndx > 0){
-  message(paste0(lNegValsIndx, ' (', (lNegValsIndx/ length(negVals) * 100), '%) of the LC-MS variables contain one of more negative values following loess smoothing...\n\n', 
-            'A column of logicals "negVals" will be added to the returned table indicating these...\n\n',
-            'Please examine and remove these potentially problematic features before proceeding with further analysis...\n\n'))
-  # create new column in peak table
-  peakTable$negVals <- negVals  
-  }
-  # replace with normalized obsTable
+  # replace with adjusted values obsTable
   peakTable[, sort(c(sampIndx, qcIndx))] <- obsTable[, 1:(ncol(obsTable) - 1)]
   # add optimal span parameter column
   peakTable$smoothSpanLoessFit <- obsTable[, ncol(obsTable)]

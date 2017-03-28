@@ -5,19 +5,25 @@
 #' @param ... additional arguments to \code{\link{fread}}.
 tableCheckRead <- function(tmpTable=NULL, type="peak-picker", ...){
   
-  if(is.null(tmpTable)){
+if(is.null(tmpTable)){
   message("file chooser window opened...")
   flush.console()
   tmpTable <- tcltk::tclvalue(tcltk::tkgetOpenFile(filetypes = "{{comma delimited text file} {.csv}} {{All files} *}",
                                                     title=paste0("Select your ", type, " table")))
   # read in table if necessary
-  tmpTable <- data.table::fread(tmpTable, header=T, ...)   
+  tmpTable <- as.data.frame(data.table::fread(tmpTable, header=TRUE, ...), 
+                            stringsAsFactors=FALSE)   
 } else if(is.character(tmpTable)){
   # read in table from character string if necessary
-  tmpTable <- data.table::fread(tmpTable, header=T, ...)  
+  tmpTable <- as.data.frame(data.table::fread(tmpTable, header=TRUE, ...), 
+                            stringsAsFactors=FALSE)  
 } 
 if(!is.data.frame(tmpTable)){
   stop(paste0(type, " argument is not a data.frame"))
 }
+  # check first column is integer i.e. eic number
+  if(!is.integer(tmpTable[, 1])){
+    stop('The first column of the peak table must be a unique identifying integer (i.e. EIC number)')
+  }
 return(tmpTable)
 }
