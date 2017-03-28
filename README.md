@@ -1,7 +1,7 @@
 MetMSLine
 =========
 
-[![DOI](https://zenodo.org/badge/14743752.svg)](https://zenodo.org/badge/latestdoi/14743752) latest stable release available on zenodo repository (v1.1.0 - 2017/03/28). 
+[![DOI](https://zenodo.org/badge/14743752.svg)](https://zenodo.org/badge/latestdoi/14743752) latest stable release (v1.1.0) archived on zenodo repository (2017/03/28). 
 
 
 R functions for automation of biomarker discovery based on processing downstream of peak picking softwares.
