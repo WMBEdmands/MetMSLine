@@ -24,4 +24,3 @@ or 'Medium (~4 m/z)'.}
 \description{
 Generate target list (.csv) file from subset peak table
 }
-

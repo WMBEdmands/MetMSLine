@@ -43,4 +43,3 @@ p value thresholds (minPintercept and minPcontVar).
 linear model residual differences by subtraction and continuous var (i.e.
 days to diagnosis)
 }
-

@@ -85,4 +85,3 @@ a list containing 2 elements:
 \description{
 \code{\link{ramclustR}} - modified for MetMSLine
 }
-

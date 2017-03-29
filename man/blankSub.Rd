@@ -30,4 +30,3 @@ calculate either the mean or median fold change between samples
 and blanks for every LC-MS variable and retain only LC-MS features above
 the blank fold change cut-off.
 }
-

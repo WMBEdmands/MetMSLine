@@ -46,4 +46,3 @@ plain text (.txt) files in the output directory (see outDir).
 \description{
 Generate cytoscape map files from peakTable
 }
-

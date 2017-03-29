@@ -34,4 +34,3 @@ volcanoPlot(folds, pvals, cexcutoff = 0.7, cexlab = 0.5, plimit = 0.05,
 Volcano plot slightly modified from \code{\link{VolcanoPlot}} from the metabolomics
 package.
 }
-

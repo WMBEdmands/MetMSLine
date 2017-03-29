@@ -28,4 +28,3 @@ a data frame identical to peakTable with samples normalized according to specifi
 normalizes mass spectral signal either by the median fold change 
 (probabilistic quotient) or total ion signal methods
 }
-

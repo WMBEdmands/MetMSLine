@@ -21,4 +21,3 @@ outliers.
 expand hotellings ellipse from a pcaRes object \code{\link{pcaRes}}
 and expand hotellings ellipse to identify outliers
 }
-

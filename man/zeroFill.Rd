@@ -23,4 +23,3 @@ the mimimum non-zero observed value.
 identify and replace zero/ missing values (NA) in peak table with half
 the mimimum non-zero observed value.
 }
-

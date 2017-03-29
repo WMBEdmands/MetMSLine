@@ -11,4 +11,3 @@ hotEllipse(x, y, alfa = 0.95, len = 10000)
 Hotellings T2 statistic and ellipse calculation function taken from
 pcaMethods:::simpleEllipse
 }
-

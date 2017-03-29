@@ -23,4 +23,3 @@ the \code{\link{pcaMethods}} package.
 \seealso{
 \code{\link{pcaOutId}}, \code{\link{pcaRes}}, \code{\link{pca}}.
 }
-

@@ -17,4 +17,3 @@ If argument is not supplied a GUI file selection window will open and a text fil
 \description{
 peak/ co-variate table error handling and/ or read from character string
 }
-

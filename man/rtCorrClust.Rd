@@ -67,4 +67,3 @@ any groups containing less than a mimimum feature number are removed
 (minFeat default = 2), a default value for the minFeat of 2 means that only
 isolated single features with no relation to another feature are removed.
 }
-

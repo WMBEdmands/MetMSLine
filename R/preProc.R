@@ -1,6 +1,5 @@
 #' preProc - combined pre-processing steps of the MetMSLine package.
-#' 
-#' 
+#'  
 #' @description Wrapper function performs all multiparametric preprocessing steps 
 #' for large-scale high-resolution LC-MS metabolomic datasets. Combines the 
 #' \code{\link{zeroFill}},  \code{\link{signNorm}}, \code{\link{loessSmooth}},
@@ -40,18 +39,25 @@
 #' Any LC-MS features lower than the fold change threshold (blankFCthresh) will be removed. 
 #' The fold change threshold can be set as required (default = 2, see blankFCthresh).
 #' @param zeroFillValue numeric value to fill zero/ missing values (NA). By default
-#' half the mimimum non-zero observed peak intensity is used.
-#' @param cvThresh numeric numeric the minimum CV\% to retain an LC-MS variable (default = NULL).
+#' half the mimimum non-zero observed peak intensity is used for \code{\link{zeroFill}} function.
+#' @param cvThresh numeric the minimum CV\% to retain an LC-MS variable (default = NULL).
 #' If this argument and qcNames are not supplied the CV\% will not be calculated 
 #' using the quality control samples and no LC-MS features below the CV\% 
-#' threshold will not be removed. 
-#' @param baseLogT the base with respect to which logarithms are computed \code{\link{log}}. Defaults to e=exp(1)
+#' threshold will not be removed. Argument for the \code{\link{cvCalc}} function.
+#'  @param outputDir optional directory path to save output images before and after QC
+#' smoothing. A subdirectory will be created in which to save the png images. Argument for the \code{\link{loessSmooth}} function.
+#' @param smoothSpan numeric (values between 0-1) fixed smoothing span. If supplied a this fixed smoothing
+#' span parameter will override the cross validated feature-by-feature smoothing
+#' span optimization. Argument for the \code{\link{loessSmooth}} function.
+#' @param folds numeric (default=7, i.e. 7-fold cross validation) n-fold cross validation.
+#' Argument for the \code{\link{loessSmooth}} function.
+#' @param baseLogT the base with respect to which logarithms are computed \code{\link{log}}. Defaults to e=exp(1). Argument for the \code{\link{logTrans}} function.
 #' @param normMethod either "medFC" for median fold change or "totIon" for total ion signal normalization.
 #' also a custom vector of factors equal in length to the obsNames argument with 
-#' which to normalize the data can also be supplied. default = "medFC".
-#' @param blankFCmethod character either 'median' or 'mean' fold change calculation.
+#' which to normalize the data can also be supplied. default = "medFC". Argument for the \code{\link{bnormMethod}} function.
+#' @param blankFCmethod character either 'median' or 'mean' fold change calculation. Argument for the \code{\link{blankSub}} function.
 #' @param blankFCthresh numeric sample:blank fold change cut-off. Any LC-MS
-#' features below this threshold will be removed. 
+#' features below this threshold will be removed. Argument for the \code{\link{blankSub}} function.
 #' @return a data frame identical to peakTable argument (with potentially fewer
 #' rows/ LC-MS features if blank substraction or CV\% calculation/ threshold filtration 
 #' have been performed, see: \code{\link{blankSub}}, \code{\link{cvCalc}}).
@@ -75,15 +81,15 @@
 #' 
 #' @export
 preProc <- function(peakTable=NULL, obsNames=NULL, sampNames=NULL, qcNames=NULL, 
-                    blankNames=NULL, zeroFillValue=NULL, cvThresh=NULL, nCores=NULL, 
-                    baseLogT=exp(1), blankFCmethod='mean', blankFCthresh=2, 
-                    normMethod="medFC"){
+                    blankNames=NULL, zeroFillValue=NULL, cvThresh=NULL, nCores=NULL,
+                    outputDir=NULL, smoothSpan=NULL, folds=7, baseLogT=exp(1), 
+                    blankFCmethod='mean', blankFCthresh=2, normMethod="medFC"){
   #error handling
   if(is.null(obsNames)){
     stop('argument obsNames is missing with no default')
   } 
   # error handling or read from csv function
-  peakTable <- tableCheckRead(peakTable, stringsAsFactors=F)
+  peakTable <- tableCheckRead(peakTable, stringsAsFactors=FALSE)
   # match obsNames to peak table colnames
   obsIndx <- match(obsNames, colnames(peakTable))
   # if less than all matched then stop
@@ -103,15 +109,10 @@ preProc <- function(peakTable=NULL, obsNames=NULL, sampNames=NULL, qcNames=NULL,
   }
   # 3. if necessary peform loess smoothing
   if(!is.null(sampNames) & !is.null(qcNames)){
-  peakTable <- loessSmooth(peakTable, sampNames, qcNames, nCores=nCores)
-  # remove any negative variables
-  if(!is.null(peakTable$negVals)){
-  message("removing ", sum(peakTable$negVals), " LC-MS features containing negative values following loess smoothing...\n")
-  flush.console()
-  peakTable <- peakTable[peakTable$negVals == F, ]
-  # remove negVals column
-  peakTable$negVals <- NULL
-  }
+  peakTable <- loessSmooth(peakTable, sampNames, qcNames, nCores=nCores,
+                           outputDir=outputDir, folds=folds, 
+                           smoothSpan=smoothSpan)
+ 
   } else {
   message('no QC based signal attenuation correction will be performed...\n')
   flush.console()

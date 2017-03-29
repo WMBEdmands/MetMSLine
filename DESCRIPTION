@@ -2,7 +2,7 @@ Package: MetMSLine
 Type: Package
 Title: an automated and fully integrated pipeline for rapid processing of 
     high-resolution LC-MS metabolomic datasets.
-Version: 1.1.0
+Version: 1.1.1
 Date: 2015-07-28
 Authors@R: c(
     person("William MB", "Edmands", role = c("aut", "cre"), email="edmandsw@berkeley.edu"),
@@ -33,4 +33,4 @@ BugReports: https://github.com/WMBEdmands/MetMSLine/issues/new
 URL: doi.org/10.1093/bioinformatics/btu705
 VignetteBuilder: knitr
 License: GPL (>= 3)
-RoxygenNote: 5.0.0
+RoxygenNote: 6.0.1

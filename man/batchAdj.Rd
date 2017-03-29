@@ -30,4 +30,3 @@ linear modelling of a peak table adjusting for batch \code{\link{lm}}.
 i.e. peakTable ~ batchEff. Residuals are used as normalization factors for
 each variable variable.
 }
-

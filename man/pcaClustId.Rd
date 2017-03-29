@@ -51,4 +51,3 @@ is defined as the linear model with the highest coefficient of determination (R2
 \seealso{
 \code{\link{lowess}}, \code{\link{na.spline}}, \code{\link{pcaOutId}}.
 }
-

@@ -20,4 +20,3 @@ a data frame identical to peakTable with observations log transformed.
 \description{
 log transform zero filled peak table to correct for multiplicative noise.
 }
-

@@ -2,20 +2,36 @@
 % Please edit documentation in R/loessFitKfoldCV.R
 \name{loessFitKfoldCV}
 \alias{loessFitKfoldCV}
-\title{loess with 7 - fold CV function}
+\title{loess with n - fold CV function}
 \usage{
-loessFitKfoldCV(x, y, feature, folds = 7)
+loessFitKfoldCV(x, y, feature, smoothSpan = NULL, folds = 7,
+  plotFile = NULL, colours = NULL)
 }
 \arguments{
 \item{x}{predictor values}
 
 \item{y}{response values}
 
+\item{feature}{LC-MS feature.}
+
+\item{smoothSpan}{fixed smoothing span. If supplied a this fixed smoothing
+span parameter will override the cross validated feature-by-feature smoothing
+span optimization.}
+
 \item{folds}{numeric (default=7, i.e. 7-fold cross validation).}
 
-\item{original}{LC-MS feature.}
+\item{plotFile}{character full path to plot file png (optional). If supplied
+a plot file will be generated at this location showing the before and after
+loess smoothing result.}
+
+\item{colours}{vector of colours for datapoints (i.e. red for QCs and black for
+samples). (optional if plot file supplied then this argument is required). 
+Argument is passed to \link{plot} col.}
+}
+\value{
+vector smoothed feature and smoothing span parameter selected concatenated
+to end.
 }
 \description{
-loess with 7 - fold CV function
+loess with n - fold CV function
 }
-

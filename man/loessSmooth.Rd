@@ -10,7 +10,7 @@ chromatography and liquid chromatography coupled to mass spectrometry
 }
 \usage{
 loessSmooth(peakTable = NULL, sampNames = NULL, qcNames = NULL,
-  nCores = NULL)
+  nCores = NULL, outputDir = NULL, smoothSpan = NULL, folds = 7)
 }
 \arguments{
 \item{peakTable}{either a data.frame, full file path as a character string to a  .csv file of a peak table in the form observation (samples) in columns and
@@ -22,6 +22,15 @@ variables (Mass spectral signals) in rows. If argument is not supplied a GUI fil
 
 \item{nCores}{number of cores to use for parallel processing with the foreach
 and snow packages.}
+
+\item{outputDir}{optional directory path to save output images before and after QC
+smoothing. A subdirectory will be created in which to save the png images.}
+
+\item{smoothSpan}{fixed smoothing span. If supplied a this fixed smoothing
+span parameter will override the cross validated feature-by-feature smoothing
+span optimization.}
+
+\item{folds}{numeric (default=7, i.e. 7-fold cross validation).}
 }
 \value{
 a data frame identical to peakTable with signal drift/ attenuation adjusted.
@@ -62,4 +71,3 @@ is considered to reduce the computational time cost using the argument nCores.
 \code{\link{loess}}, \code{\link{loess.wrapper}}, \code{\link{bisoreg}},
  \code{\link{crossval}}, \code{\link{predict.loess}}, \code{\link{set.seed}}.
 }
-

@@ -6,8 +6,9 @@
 \usage{
 preProc(peakTable = NULL, obsNames = NULL, sampNames = NULL,
   qcNames = NULL, blankNames = NULL, zeroFillValue = NULL,
-  cvThresh = NULL, nCores = NULL, baseLogT = exp(1),
-  blankFCmethod = "mean", blankFCthresh = 2, normMethod = "medFC")
+  cvThresh = NULL, nCores = NULL, outputDir = NULL, smoothSpan = NULL,
+  folds = 7, baseLogT = exp(1), blankFCmethod = "mean",
+  blankFCthresh = 2, normMethod = "medFC")
 }
 \arguments{
 \item{peakTable}{either a data.frame, full file path as a character string to a  .csv file of a peak table in the form observation (samples) in columns and
@@ -31,23 +32,32 @@ Any LC-MS features lower than the fold change threshold (blankFCthresh) will be 
 The fold change threshold can be set as required (default = 2, see blankFCthresh).}
 
 \item{zeroFillValue}{numeric value to fill zero/ missing values (NA). By default
-half the mimimum non-zero observed peak intensity is used.}
+half the mimimum non-zero observed peak intensity is used for \code{\link{zeroFill}} function.}
 
-\item{cvThresh}{numeric numeric the minimum CV\% to retain an LC-MS variable (default = NULL).
+\item{cvThresh}{numeric the minimum CV\% to retain an LC-MS variable (default = NULL).
 If this argument and qcNames are not supplied the CV\% will not be calculated 
 using the quality control samples and no LC-MS features below the CV\% 
-threshold will not be removed.}
+threshold will not be removed. Argument for the \code{\link{cvCalc}} function.
+ @param outputDir optional directory path to save output images before and after QC
+smoothing. A subdirectory will be created in which to save the png images. Argument for the \code{\link{loessSmooth}} function.}
 
-\item{baseLogT}{the base with respect to which logarithms are computed \code{\link{log}}. Defaults to e=exp(1)}
+\item{smoothSpan}{numeric (values between 0-1) fixed smoothing span. If supplied a this fixed smoothing
+span parameter will override the cross validated feature-by-feature smoothing
+span optimization. Argument for the \code{\link{loessSmooth}} function.}
 
-\item{blankFCmethod}{character either 'median' or 'mean' fold change calculation.}
+\item{folds}{numeric (default=7, i.e. 7-fold cross validation) n-fold cross validation.
+Argument for the \code{\link{loessSmooth}} function.}
+
+\item{baseLogT}{the base with respect to which logarithms are computed \code{\link{log}}. Defaults to e=exp(1). Argument for the \code{\link{logTrans}} function.}
+
+\item{blankFCmethod}{character either 'median' or 'mean' fold change calculation. Argument for the \code{\link{blankSub}} function.}
 
 \item{blankFCthresh}{numeric sample:blank fold change cut-off. Any LC-MS
-features below this threshold will be removed.}
+features below this threshold will be removed. Argument for the \code{\link{blankSub}} function.}
 
 \item{normMethod}{either "medFC" for median fold change or "totIon" for total ion signal normalization.
 also a custom vector of factors equal in length to the obsNames argument with 
-which to normalize the data can also be supplied. default = "medFC".}
+which to normalize the data can also be supplied. default = "medFC". Argument for the \code{\link{bnormMethod}} function.}
 }
 \value{
 a data frame identical to peakTable argument (with potentially fewer
@@ -98,4 +108,3 @@ preProc_peakTable <- preProc(peakTable, obsNames, sampNames, qcNames, blankNames
                              cvThresh=30, nCores=nCores)
 
 }
-

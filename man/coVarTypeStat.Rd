@@ -103,4 +103,3 @@ a named list (according to stat method selected) containing the 5 followning
 function determines whether a co-variate is two sample, continuous or up to
 n distinct classes (three or more sample) and selects the statistical method to apply accordingly.
 }
-

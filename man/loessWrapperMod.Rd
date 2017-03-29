@@ -9,4 +9,3 @@ loessWrapperMod(x, y, data, span.vals = seq(0.25, 1, by = 0.05), folds = 5)
 \description{
 adapted from \link{\code{bisoreg}} package
 }
-

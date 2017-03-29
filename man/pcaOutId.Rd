@@ -34,7 +34,7 @@ and outlier identification. Each pca result sublist consists of 3 elements:
 3. a named logical vector of each outlier detected.
 }
 \description{
-identify potential analytical/preparative outliers in a pca based
+identify potential analytical/preparative outliers on a pca scores plot based
 on a proportional expansion of the Hotelling's T2 ellipse using the \code{\link{pcaMethods}} package.
 }
 \details{
@@ -55,4 +55,3 @@ spectrometer performance etc.
 \seealso{
 \code{\link{pca}}, \code{\link{pcaRes}}
 }
-

@@ -4,13 +4,13 @@
 \alias{cvCalc}
 \title{calculate the analytical coefficient of variation from a set of observations}
 \usage{
-cvCalc(peakTable = NULL, obsNames = NULL, thresh = 30)
+cvCalc(peakTable = NULL, qcNames = NULL, thresh = 30)
 }
 \arguments{
 \item{peakTable}{either a data.frame, full file path as a character string to a  .csv file of a peak table in the form observation (samples) in columns and
 variables (Mass spectral signals) in rows. If argument is not supplied a GUI (tcltk) file selection window will open and a .csv file can be selected.}
 
-\item{obsNames}{character vector (i.e. sample/ QC/ Blank) names to identify appropriate observation (sample) columns
+\item{qcNames}{character vector quality control/ analytical replicate names to identify appropriate observation (sample) columns in peak table.
 with to calculate the coefficient of variance (CV\%).}
 
 \item{thresh}{numeric the minimum CV\% to retain an LC-MS variable (default = 30 i.e. 30\%).}
@@ -29,4 +29,3 @@ The CV\% is calculated according to the following equation:
 
 where \eqn{\delta} is the standard deviation and \eqn{\mu} is the mean
 }
-

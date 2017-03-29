@@ -1,6 +1,6 @@
 #' Identify outliers in a PCA plot based on expansion of Hotelling's ellipse.
 #'  
-#' @description identify potential analytical/preparative outliers in a pca based
+#' @description identify potential analytical/preparative outliers on a pca scores plot based
 #' on a proportional expansion of the Hotelling's T2 ellipse using the \code{\link{pcaMethods}} package.
 #' 
 #' @param peakTable either a data.frame, full file path as a character string to a  .csv file of a peak table in the form observation (samples) in columns and
