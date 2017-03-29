@@ -1,14 +1,27 @@
 MetMSLine
 =========
 
-[![DOI](https://zenodo.org/badge/21719/WMBEdmands/MetMSLine.svg)](https://zenodo.org/badge/latestdoi/21719/WMBEdmands/MetMSLine)
+[![DOI](https://zenodo.org/badge/14743752.svg)](https://zenodo.org/badge/latestdoi/14743752) latest stable release v1.1.0 (archived on zenodo repository). 
 
 R functions for automation of biomarker discovery based on processing downstream of peak picking softwares.
+
+![workflow_illustr](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4341062/bin/btu705f1p.jpg)
+
+The MetMSLine workflow scripts and associated functions have now migrated to package form. The first 3 data processing scripts as discussed in the publication (*PreProc.QC.LSC.R*, *Auto.PCA.R*, *Auto.MV.Regress.R*) are incorporated within this package and explained in the two accompanying vignettes. The 4th and 5th scripts (*Auto.MS.MS.match.R*, *DBAnnotate.R*) which are concerned with metabolite annotation have now been largely supplanted by the [compMS2Miner](https://github.com/WMBEdmands/compMS2Miner) package. The original scripts discussed in the publication can still be found in the [MetMSLine_Scripts](https://github.com/WMBEdmands/MetMSLine_Scripts) repository.
+
+MetMSLine combined with the [compMS2Miner](https://github.com/WMBEdmands/compMS2Miner) package are intended to facilitate autonomous metabolomic data analysis. These two packages combined with the [xcms](https://bioconductor.org/packages/release/bioc/html/xcms.html) and [CAMERA](https://bioconductor.org/packages/release/bioc/html/CAMERA.html) R packages a complete and largely autonomous metabolomic workflow can be acheived.
+
+If you find MetMSLine useful please cite us:
+
+**MetMSLine: an automated and fully integrated pipeline for rapid processing of high-resolution LC-MS metabolomic datasets.**
+*William Matthew Bell Edmands, Dinesh Kumar Barupal, Augustin Scalbert*
+Bioinformatics 2015; 31 (5): 788-790.
+[DOI: 10.1093/bioinformatics/btu705](https://doi.org/10.1093/bioinformatics/btu705) 
 
 Overview
 ===============
 
-The workflow consists of 5 stages:
+The workflow consists of 4 stages:
 
 1. pre-processing. Performs all multiparametric preprocessing steps for large-scale high-resolution LC-MS metabolomic datasets.
 
@@ -16,7 +29,10 @@ The workflow consists of 5 stages:
 and PCA scores cluster identification (using PAM clustering and regression).
 
 3. Objective univariate statistical analysis based on covariate type.
-Multiparametric, automatic regression analysis, biomarker discovery, hierarchical clustering analysis and cluster ion and isotope identification for high resolution LC-MS data with multiple continuous Y variables. 
+Multiparametric, automatic regression/statistical analysis, biomarker discovery for high resolution LC-MS data with multiple Y variables. 
+
+4. Concerned with unknown LC-MS feature annotation has now been largely supplanted by the [compMS2Miner](https://github.com/WMBEdmands/compMS2Miner) package.
+...
 
 Installation
 ==============
