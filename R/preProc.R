@@ -68,9 +68,12 @@
 #' # all observation names
 #' obsNames <- colnames(peakTable)[grep("QC_|sample_|blank_", colnames(peakTable))]
 #' # quality control names
-#' qcNames <- colnames(peakTable)[grep("QC_", colnames(peakTable))] 
-#' # sample names
+#' qcNames <- colnames(peakTable)[grep("QC_", colnames(peakTable))]
+#' # remove all but last column conditioning QC
+#' qcNames <- qcNames[-c(9:1)] 
+#' # sample names only those bounded by qcs
 #' sampNames <- colnames(peakTable)[grep("sample_", colnames(peakTable))]
+#' sampNames <- sampNames[-c(length(sampNames):{length(sampNames) - 3})]
 #' # blank (negative control) names
 #' blankNames <- colnames(peakTable)[grep("blank_", colnames(peakTable))]
 #' # detect number of cores using parallel package
@@ -112,6 +115,14 @@ preProc <- function(peakTable=NULL, obsNames=NULL, sampNames=NULL, qcNames=NULL,
   peakTable <- loessSmooth(peakTable, sampNames, qcNames, nCores=nCores,
                            outputDir=outputDir, folds=folds, 
                            smoothSpan=smoothSpan)
+  # remove any negative variables
+  if(!is.null(peakTable$negVals)){
+    message("removing ", sum(peakTable$negVals), " LC-MS features containing negative values following loess smoothing...\n")
+    flush.console()
+    peakTable <- peakTable[peakTable$negVals == FALSE, ]
+    # remove negVals column
+    peakTable$negVals <- NULL
+   }
  
   } else {
   message('no QC based signal attenuation correction will be performed...\n')
