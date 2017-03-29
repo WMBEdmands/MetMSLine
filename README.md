@@ -16,7 +16,7 @@ If you find MetMSLine useful please cite us:
 **MetMSLine: an automated and fully integrated pipeline for rapid processing of high-resolution LC-MS metabolomic datasets.**
 *William Matthew Bell Edmands, Dinesh Kumar Barupal, Augustin Scalbert*
 Bioinformatics 2015; 31 (5): 788-790.
-[DOI: 10.1093/bioinformatics/btu705](http://pubs.acs.org/doi/abs/10.1093/bioinformatics/btu705)
+[DOI: 10.1093/bioinformatics/btu705](https://doi.org/10.1093/bioinformatics/btu705) 
 
 Overview
 ===============
