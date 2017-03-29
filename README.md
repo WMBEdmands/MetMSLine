@@ -31,7 +31,7 @@ and PCA scores cluster identification (using PAM clustering and regression).
 3. Objective univariate statistical analysis based on covariate type.
 Multiparametric, automatic regression/statistical analysis, biomarker discovery for high resolution LC-MS data with multiple Y variables. 
 
-4. - 5. metabolite annotation steps have now been largely supplanted by the [compMS2Miner](https://github.com/WMBEdmands/compMS2Miner) package.
+Stages 4. - 5. concerned with metabolite annotation have now been largely supplanted by the [compMS2Miner](https://github.com/WMBEdmands/compMS2Miner) package.
 ...
 
 Installation
