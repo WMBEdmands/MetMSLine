@@ -117,7 +117,10 @@ preProc <- function(peakTable=NULL, obsNames=NULL, sampNames=NULL, qcNames=NULL,
                            smoothSpan=smoothSpan)
   # remove any negative variables
   if(!is.null(peakTable$negVals)){
-    message("removing ", sum(peakTable$negVals), " LC-MS features containing negative values following loess smoothing...\n")
+    message("Automatically removing ", sum(peakTable$negVals), 
+            " LC-MS features containing negative values following loess smoothing...:\n\n", 
+            paste0('EIC ', peakTable[peakTable$negVals, 1], collapse = '\n'), 
+            '\n')
     flush.console()
     peakTable <- peakTable[peakTable$negVals == FALSE, ]
     # remove negVals column

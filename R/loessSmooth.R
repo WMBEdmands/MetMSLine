@@ -167,12 +167,12 @@ loessSmooth <- function(peakTable=NULL, sampNames=NULL, qcNames=NULL,
    negVals <- apply(obsTable[, 1:(ncol(obsTable) - 1)], 1, function(Var) any(Var < 0))
    lNegValsIndx <- length(which(negVals))
    if(lNegValsIndx > 0){
-     message(paste0(lNegValsIndx, ' (', (lNegValsIndx/ length(negVals) * 100), '%) of the LC-MS variables contain one of more negative values following loess smoothing...\n\n', 
+     message(paste0(lNegValsIndx, ' (', (lNegValsIndx/ length(negVals) * 100), '%) of the LC-MS variables contain one or more negative values following loess smoothing...\n\n', 
                                  'A column of logicals "negVals" will be added to the returned table indicating these...\n\n',
                                  'Please examine and remove these potentially problematic features before proceeding with further analysis...\n\n'))
      # create new column in peak table
        peakTable$negVals <- negVals  
-       }
+  }
   # replace with adjusted values obsTable
   peakTable[, sort(c(sampIndx, qcIndx))] <- obsTable[, 1:(ncol(obsTable) - 1)]
   # add optimal span parameter column
