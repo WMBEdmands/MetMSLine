@@ -1,11 +1,11 @@
 MetMSLine
 =========
 
-[![DOI](https://zenodo.org/badge/14743752.svg)](https://zenodo.org/badge/latestdoi/14743752) latest stable release (v1.1.0) archived on zenodo repository (2017/03/28). 
+[![DOI](https://zenodo.org/badge/14743752.svg)](https://zenodo.org/badge/latestdoi/14743752) latest stable release v1.1.0 (archived on zenodo repository). 
 
 R functions for automation of biomarker discovery based on processing downstream of peak picking softwares.
 
-https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4341062/bin/btu705f1p.jpg
+![workflow_illustr](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4341062/bin/btu705f1p.jpg)
 
 The MetMSLine workflow scripts and associated functions have now migrated to package form. The first 3 steps of data processing as discussed in the publication (*PreProc.QC.LSC.R*, *Auto.PCA.R*, *Auto.MV.Regress.R*) are incorporated within this package and explained in the two accompanying vignettes. The 4th and 5th scripts (*Auto.MS.MS.match.R*, *DBAnnotate.R*) which are concerned with metabolite annotation have now been largely supplanted by the [compMS2Miner](https://github.com/WMBEdmands/compMS2Miner) package. The original scripts discussed in the publication can still be found in the [MetMSLine_Scripts](https://github.com/WMBEdmands/MetMSLine_Scripts) repository.
 
