@@ -96,9 +96,12 @@ peakTable <- read.csv(peakTable, header=T, stringsAsFactors=F)
 # all observation names
 obsNames <- colnames(peakTable)[grep("QC_|sample_|blank_", colnames(peakTable))]
 # quality control names
-qcNames <- colnames(peakTable)[grep("QC_", colnames(peakTable))] 
-# sample names
+qcNames <- colnames(peakTable)[grep("QC_", colnames(peakTable))]
+# remove all but last column conditioning QC
+qcNames <- qcNames[-c(9:1)] 
+# sample names only those bounded by qcs
 sampNames <- colnames(peakTable)[grep("sample_", colnames(peakTable))]
+sampNames <- sampNames[-c(length(sampNames):{length(sampNames) - 3})]
 # blank (negative control) names
 blankNames <- colnames(peakTable)[grep("blank_", colnames(peakTable))]
 # detect number of cores using parallel package
