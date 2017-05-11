@@ -9,7 +9,7 @@ R functions for automation of biomarker discovery based on processing downstream
 
 The MetMSLine workflow scripts and associated functions have now migrated to package form. The first 3 data processing scripts as discussed in the publication (*PreProc.QC.LSC.R*, *Auto.PCA.R*, *Auto.MV.Regress.R*) are incorporated within this package and explained in the two accompanying vignettes. The 4th and 5th scripts (*Auto.MS.MS.match.R*, *DBAnnotate.R*) which are concerned with metabolite annotation have now been largely supplanted by the [compMS2Miner](https://github.com/WMBEdmands/compMS2Miner) package. The original scripts discussed in the publication can still be found in the [MetMSLine_Scripts](https://github.com/WMBEdmands/MetMSLine_Scripts) repository.
 
-MetMSLine combined with the [compMS2Miner](https://github.com/WMBEdmands/compMS2Miner) package are intended to facilitate autonomous metabolomic data analysis. These two packages combined with the [xcms](https://bioconductor.org/packages/release/bioc/html/xcms.html) and [CAMERA](https://bioconductor.org/packages/release/bioc/html/CAMERA.html) R packages a complete and largely autonomous metabolomic workflow can be achieved.
+MetMSLine combined with the [compMS2Miner](https://github.com/WMBEdmands/compMS2Miner) package are intended to facilitate autonomous metabolomic data analysis. The MetMSLine and [compMS2Miner](https://github.com/WMBEdmands/compMS2Miner) packages combined with the [xcms](https://bioconductor.org/packages/release/bioc/html/xcms.html) and [CAMERA](https://bioconductor.org/packages/release/bioc/html/CAMERA.html) R packages can achieve a complete and largely autonomous metabolomic workflow.
 
 If you find MetMSLine useful please cite us:
 
