@@ -2,7 +2,7 @@ Package: MetMSLine
 Type: Package
 Title: an automated and fully integrated pipeline for rapid processing of 
     high-resolution LC-MS metabolomic datasets.
-Version: 1.1.2
+Version: 1.2.0
 Date: 2015-07-28
 Authors@R: c(
     person("William MB", "Edmands", role = c("aut", "cre"), email="edmandsw@berkeley.edu"),
@@ -13,7 +13,7 @@ Maintainer: William MB Edmands <edmandsw@berkeley.edu>
 Description: an automated and fully integrated pipeline for rapid processing of 
     high-resolution LC-MS metabolomic datasets.
 Depends:
-	R (>= 3.3.2)
+	R (>= 3.3.3)
 Imports:
 	tcltk2 (>= 1.2.11),
 	zoo (>= 1.7.14),
@@ -28,7 +28,7 @@ Imports:
 	foreach (>= 1.4.3)
 Suggests:
 	knitr (>= 1.15.1),
-	rmarkdown (>= 1.3)
+	rmarkdown (>= 1.5)
 BugReports: https://github.com/WMBEdmands/MetMSLine/issues/new
 URL: doi.org/10.1093/bioinformatics/btu705
 VignetteBuilder: knitr

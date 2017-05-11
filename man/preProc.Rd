@@ -6,9 +6,9 @@
 \usage{
 preProc(peakTable = NULL, obsNames = NULL, sampNames = NULL,
   qcNames = NULL, blankNames = NULL, zeroFillValue = NULL,
-  cvThresh = NULL, nCores = NULL, outputDir = NULL, smoothSpan = NULL,
-  folds = 7, baseLogT = exp(1), blankFCmethod = "mean",
-  blankFCthresh = 2, normMethod = "medFC")
+  normMethod = NULL, cvThresh = NULL, nCores = NULL, outputDir = NULL,
+  smoothSpan = NULL, folds = 7, baseLogT = exp(1),
+  blankFCmethod = "mean", blankFCthresh = 2)
 }
 \arguments{
 \item{peakTable}{either a data.frame, full file path as a character string to a  .csv file of a peak table in the form observation (samples) in columns and
@@ -16,27 +16,31 @@ variables (Mass spectral signals) in rows. If argument is not supplied a GUI fil
 
 \item{obsNames}{character vector of observation (i.e. sample/ QC/ Blank) names to identify appropriate observation (sample) columns.}
 
-\item{sampNames}{character vector of sample names to identify appropriate observation (sample) columns. If 
+\item{sampNames}{character vector of sample names to identify appropriate observation (sample) columns. If
 either the sampNames or qcNames arguments are not supplied then the pooled QC
  \code{\link{loessSmooth}} function is not performed.}
 
-\item{qcNames}{character vector of quality control (QC) names to identify appropriate observation (quality control) columns. If the qcNames argument is not supplied neither the \code{\link{loessSmooth}} 
+\item{qcNames}{character vector of quality control (QC) names to identify appropriate observation (quality control) columns. If the qcNames argument is not supplied neither the \code{\link{loessSmooth}}
 or \code{\link{cvCalc}} functions will be carried out.}
 
 \item{blankNames}{character vector of blank (i.e. negative control) names to identify
-appropriate observation (blank) columns. If this and the sampNames argument are supplied the preProc function 
+appropriate observation (blank) columns. If this and the sampNames argument are supplied the preProc function
 will conduct a background subtraction (samples:blanks). This is carried
 out by calculating the fold change (either mean or median: see blankFCmethod) between the samples
-(see sampNames argument) as the numerator and the blanks as the denominator for each LC-MS feature. 
-Any LC-MS features lower than the fold change threshold (blankFCthresh) will be removed. 
+(see sampNames argument) as the numerator and the blanks as the denominator for each LC-MS feature.
+Any LC-MS features lower than the fold change threshold (blankFCthresh) will be removed.
 The fold change threshold can be set as required (default = 2, see blankFCthresh).}
 
 \item{zeroFillValue}{numeric value to fill zero/ missing values (NA). By default
 half the mimimum non-zero observed peak intensity is used for \code{\link{zeroFill}} function.}
 
+\item{normMethod}{either "medFC" for median fold change or "totIon" for total ion signal normalization.
+also a custom vector of factors equal in length to the obsNames argument with
+which to normalize the data can also be supplied. default = "medFC". Argument for the \code{\link{bnormMethod}} function.}
+
 \item{cvThresh}{numeric the minimum CV\% to retain an LC-MS variable (default = NULL).
-If this argument and qcNames are not supplied the CV\% will not be calculated 
-using the quality control samples and no LC-MS features below the CV\% 
+If this argument and qcNames are not supplied the CV\% will not be calculated
+using the quality control samples and no LC-MS features below the CV\%
 threshold will not be removed. Argument for the \code{\link{cvCalc}} function.
  @param outputDir optional directory path to save output images before and after QC
 smoothing. A subdirectory will be created in which to save the png images. Argument for the \code{\link{loessSmooth}} function.}
@@ -54,21 +58,17 @@ Argument for the \code{\link{loessSmooth}} function.}
 
 \item{blankFCthresh}{numeric sample:blank fold change cut-off. Any LC-MS
 features below this threshold will be removed. Argument for the \code{\link{blankSub}} function.}
-
-\item{normMethod}{either "medFC" for median fold change or "totIon" for total ion signal normalization.
-also a custom vector of factors equal in length to the obsNames argument with 
-which to normalize the data can also be supplied. default = "medFC". Argument for the \code{\link{bnormMethod}} function.}
 }
 \value{
 a data frame identical to peakTable argument (with potentially fewer
-rows/ LC-MS features if blank substraction or CV\% calculation/ threshold filtration 
+rows/ LC-MS features if blank substraction or CV\% calculation/ threshold filtration
 have been performed, see: \code{\link{blankSub}}, \code{\link{cvCalc}}).
 }
 \description{
-Wrapper function performs all multiparametric preprocessing steps 
-for large-scale high-resolution LC-MS metabolomic datasets. Combines the 
+Wrapper function performs all multiparametric preprocessing steps
+for large-scale high-resolution LC-MS metabolomic datasets. Combines the
 \code{\link{zeroFill}},  \code{\link{signNorm}}, \code{\link{loessSmooth}},
-\code{\link{blankSub}}, \code{\link{cvCalc}} and \code{\link{logTrans}} 
+\code{\link{blankSub}}, \code{\link{cvCalc}} and \code{\link{logTrans}}
 functions.
 }
 \details{
@@ -80,11 +80,11 @@ preprocessing steps will be conducted:
 
 2. signal normalization (optional, see: \code{\link{signalNorm}} for further details).
 
-3. pooled QC-based loess smoothing (optional, see: \code{\link{loessSmooth}} for further details).
+3. blank substraction (see: \code{\link{blankSub}} for further details).
 
-4. blank substraction (see: \code{\link{blankSub}} for further details).
+4. pooled QC-based loess smoothing (optional, see: \code{\link{loessSmooth}} for further details).
 
-5. Coefficient of variation calculation and filtration 
+5. Coefficient of variation calculation and filtration
 (optional, see: \code{\link{cvCalc}} for further details).
 
 6. log transformation (see: \code{\link{logTrans}} for further details).
@@ -98,7 +98,7 @@ obsNames <- colnames(peakTable)[grep("QC_|sample_|blank_", colnames(peakTable))]
 # quality control names
 qcNames <- colnames(peakTable)[grep("QC_", colnames(peakTable))]
 # remove all but last column conditioning QC
-qcNames <- qcNames[-c(9:1)] 
+qcNames <- qcNames[-c(9:1)]
 # sample names only those bounded by qcs
 sampNames <- colnames(peakTable)[grep("sample_", colnames(peakTable))]
 sampNames <- sampNames[-c(length(sampNames):{length(sampNames) - 3})]
